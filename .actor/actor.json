@@ -1,0 +1,15 @@
+{
+	"actorSpecification": 1,
+	"name": "Reddit Scraper",
+	"title": "Scraping Reddit.com for Posts and comments",
+	"description": "Scrapes titles of websites using BeautifulSoup.",
+	"version": "0.0",
+	"meta": {
+		"templateId": "python-beautifulsoup"
+	},
+	"input": "./input_schema.json",
+	"dockerfile": "./Dockerfile",
+	"storages": {
+		"dataset": "./dataset_schema.json"
+    }
+}
