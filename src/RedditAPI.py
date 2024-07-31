@@ -1,6 +1,7 @@
 import logging
 import json
 import re
+from selector import select as se
 
 from logger import Logger
 from decorators import retry
@@ -25,9 +26,17 @@ class RedditScraper(Session):
     @retry
     def get(self, *args, **kwargs):
         """ GET request using Session """
-        try: return self.get(timeout=10.0, impersonate="chrome110", *args, **kwargs)
+        try: return super(RedditScraper, self).get(timeout=10.0, impersonate="chrome110", *args, **kwargs)
         except Exception as e:
             self.logger.error(f'got an error while making a GET request: {e}')
+            return requests.Response()
+
+    @retry
+    def post(self, *args, **kwargs):
+        """ GET request using Session """
+        try: return super(RedditScraper, self).post(timeout=10.0, impersonate="chrome110", *args, **kwargs)
+        except Exception as e:
+            self.logger.error(f'got an error while making a POST request: {e}')
             return requests.Response()
 
     def __get_posts(self, posts_count: int, selector: Selector) -> list[dict]:
@@ -35,25 +44,25 @@ class RedditScraper(Session):
         def scrape(select: Selector) -> list[dict]:
             return [
                 {
-                    "postId": post.css('::attr(id)').get('') or None,
-                    "authorId": post.css('::attr(author-id)').get('') or None,
-                    "subredditId": post.css('::attr(subreddit-id)').get('') or None,
-                    "subreddit": post.css('::attr(subreddit-prefixed-name)').get(),
+                    "postId": post.css(se['post_id']).get('') or None,
+                    "authorId": post.css(se['author_id']).get('') or None,
+                    "subredditId": post.css(se['subreddit_id']).get('') or None,
+                    "subreddit": post.css(se['subreddit']).get(),
                     "author": author,
-                    "title": post.css('::attr(post-title)').get(),
-                    "postNsfw": not bool(post.css('::attr(is-post-nsfw)').get('0')),
-                    "postType": post.css('::attr(post-type)').get(),
-                    "postFlairs": self.extract_text(' '.join(post.css('shreddit-post-flair ::text').extract() or [])) or None,
-                    "postIndex": int(post.css('::attr(feedindex)').get('0')),
-                    "commentsCount": int(post.css('::attr(comment-count)').get('0')),
-                    "upvotes": int(post.css('::attr(score)').get('0')),
-                    "content": self.extract_text(''.join(post.css('div[data-post-click-location="text-body"] > div > p ::text').extract() or [])) or None,
-                    "timestamp": post.css('::attr(created-timestamp)').get('').split('.')[0] or None,
-                    "postLink": (self.api_address + post.css('::attr(permalink)').get('')) or None,
-                    "postImageLink": post.css('::attr(content-href)').get(),
-                    "authorAvatarLink": post.css('::attr(icon)').get(),
-                } for post in select.css('article > shreddit-post[permalink]')
-                if (author := post.css('::attr(author)').get('')) and 'automoderator' not in author.lower() or 'bot' not in author.lower()
+                    "title": post.css(se['post_title']).get(),
+                    "postNsfw": not bool(post.css(se['post_nsfw']).get('0')),
+                    "postType": post.css(se['post_type']).get(),
+                    "postFlairs": self.extract_text(' '.join(post.css(se['post_flairs']).extract() or [])) or None,
+                    "postIndex": int(post.css(se['post_index']).get('0')),
+                    "commentsCount": int(post.css(se['comments_count']).get('0')),
+                    "upvotes": int(post.css(se['post_upvotes']).get('0')),
+                    "content": self.extract_text(''.join(post.css(se['content']).extract() or [])) or None,
+                    "timestamp": post.css(se['timestamp']).get('').split('.')[0] or None,
+                    "postLink": (self.api_address + post.css(se['post_link']).get('')) or None,
+                    "postImageLink": post.css(se['post_image_link']).get(),
+                    "authorAvatarLink": post.css(se['icon']).get(),
+                } for post in select.css(se['post'])
+                if (author := post.css(se['post_author']).get('')) and 'automoderator' not in author.lower() or 'bot' not in author.lower()
             ]
 
         posts: list = []
@@ -69,7 +78,7 @@ class RedditScraper(Session):
         posts.extend(page)
         for post in page: yield post
 
-        next_link = lambda: selector.css('faceplate-partial[src][method] ::attr(src)').get()
+        next_link = lambda: selector.css(se['posts_cursor']).get()
         last_pull_count: int = 0
         while next_link() and len(posts) < posts_count:
             response: str = self.get(self.api_address + next_link()).text
@@ -91,18 +100,18 @@ class RedditScraper(Session):
 
         response = self.get(self.api_address + f'/user/{user_name.replace(" ", "")}/').text
         selector = Selector(text=response, type="html")
-        profile = json.loads(selector.css('reddit-page-data ::attr(data)').get(
-            json.dumps({'profile': {"empty": True}})
+        profile = json.loads(selector.css(se['user_profile']).get(
+            json.dumps({'profile': {"empty": True}})  # if user-profile is empty then default to this dict
         ))['profile']
 
         return {
             "id": profile.get('id', None),
             "name": profile.get('name', None),
             "nsfw": profile.get('isNsfw', None),
-            "description": self.extract_text(' '.join(selector.css('p[data-testid="profile-description"] ::text').extract())) or None,
-            "post_karma": int(self.extract_text(selector.css('span[data-testid="karma-number"] ::text').get('0')).replace(',', '')),
-            "comment_karma": int(self.extract_text(selector.css('span[data-testid="karma-number"]')[-1].css('::text').get('0')).replace(',', '')),
-            "cake_day": self.extract_text(' '.join(selector.css('time[data-testid="cake-day"] ::text').extract())).lower() or None,
+            "description": self.extract_text(' '.join(selector.css(se['user_description']).extract())) or None,
+            "post_karma": int(self.extract_text(selector.css(se["posts_karma"]).get('0')).replace(',', '')),
+            "comment_karma": int(self.extract_text(selector.css(se['comments_karma'])[-1].css('::text').get('0')).replace(',', '')),
+            "cake_day": self.extract_text(' '.join(selector.css(se['cake_day']).extract())).lower() or None,
             "icon": profile.get('icon', None),
         }
 
@@ -113,26 +122,26 @@ class RedditScraper(Session):
 
         response = self.get(self.api_address + f'/r/{community_name.replace(" ", "")}/').text
         selector = Selector(text=response, type="html")
-        subreddit = json.loads(selector.css('reddit-page-data ::attr(data)').get(
+        subreddit = json.loads(selector.css(se['subreddit_homepage']).get(
             json.dumps({'subreddit': {"empty": True}})
         ))['subreddit']
 
         return {
             "id": subreddit.get('id', None),
             "name": subreddit.get('name', None),
-            "title": selector.css(f'shreddit-subreddit-header[name="{community_name}"] ::attr(display-name)').extract_first(None),
+            "title": selector.css(se['subreddit_title'].replace("{community_name}", community_name)).extract_first(None),
             "prefix": subreddit.get('prefixedName', None),
             "nsfw": subreddit.get('isNsfw', None),
             "quarantined": subreddit.get('isQuarantined', None),
-            "description": selector.css(f'shreddit-subreddit-header[name="{community_name}"] ::attr(description)').get('') or None,
-            "subscribers": int(selector.css(f'shreddit-subreddit-header[name="{community_name}"] ::attr(subscribers)').get('0')),
-            "online": int(selector.css(f'shreddit-subreddit-header[name="{community_name}"] ::attr(active)').get('0')),
+            "description": selector.css(se['subreddit_description'].replace("{community_name}", community_name)).get('') or None,
+            "subscribers": int(selector.css(se['subreddit_members_count'].replace("{community_name}", community_name)).get('0')),
+            "online": int(selector.css(se['subreddit_online_members_count']).get('0')),
             "mods": [
                 mod.replace('/', ' ').strip().split(' ')[-1]
-                for mod in selector.css('faceplate-tracker[source="moderator_list"] > a ::attr(href)').extract() or ['']
+                for mod in selector.css(se['subreddit_moderators']).extract() or ['']
                 if mod
             ] or None,
-            "rules": self.extract_text(' '.join(selector.css('faceplate-auto-height-animator.block ::text').extract())).split('.') or None,
+            "rules": self.extract_text(' '.join(selector.css(se['subreddit_rules']).extract())).split('.') or None,
             'icon': subreddit.get('communityIcon', None)
         }
 
@@ -156,7 +165,7 @@ class RedditScraper(Session):
 
         return self.__get_posts(posts_count, selector)
 
-    def get_home_feed(self, posts_count: int = 100) -> list[dict]:
+    def get_home_feed_posts(self, posts_count: int = 100) -> list[dict]:
         """ scraping an amount of posts from the homa page feed for browsing reddit normally """
         self.logger.debug(f'scraping {posts_count} from the home feed')
 
@@ -167,51 +176,78 @@ class RedditScraper(Session):
 
     def get_post_comments(self, post_id: str, sub_name: str) -> list[dict]:
         """ scrape all the comments from a post """
+        def get_comment_section(html: str) -> dict:
+            comments_section: list[Selector] = Selector(html, type="html").css(se['comments_section'])
+            for comment in comments_section:
+                if (author := comment.css(se['comment_author']).get('')) and 'automoderator' in author.lower() or 'bot' in author.lower(): continue
+                if comment.css(se['comment_depth']).get('') == '0':
+                    replies = []
+
+                    for reply in comments_section[comments_section.index(comment) + 1:]:
+                        if comment == reply: continue
+                        if reply.css(se['comment_depth']).get('') == '0': break
+
+                        comment_section = scrape(reply)
+                        if comment_section:
+                            replies.append(comment_section)
+
+                    yield {
+                        "thread": scrape(comment),
+                        "replies": replies,
+                    }
+
         def scrape(select: Selector) -> dict[str, str]:
             comment_body = re.sub(
-                r'\s{2,}',
-                ' ',
-                re.sub(r'\n{2,}', '\n',
+                r'\s{2,}', ' ',  # filtering multiple spaces to one space
+                re.sub(r'\n{2,}', '\n',  # filtering multiple newlines "\n" to one newline
                        ''.join(
-                           select.css('div[slot="comment"] > div ::text').extract() or []
+                           select.css(se['comment_body']).extract() or []
                        )).strip()
             )
             if comment_body != '':
                 return {
-                    "commentId": comment.css('::attr(thingid)').get(''),
-                    "postId": comment.css('::attr(postid)').get(''),
-                    "author": comment.css('::attr(author)').get(),
+                    "commentId": select.css(se['comment_id']).get(''),
+                    "postId": select.css(se['comment_post_id']).get(''),
+                    "author": select.css(se['comment_author']).get(),
                     "body": comment_body,
-                    "commentType": comment.css('::attr(content-type)').get(),
-                    "upvotes": int(comment.css('::attr(score)').get('0')),
-                    "created_at": select.css('faceplate-timeago ::attr(ts)').get('').split('.')[0] or None,
-                    "commentLink": self.api_address + comment.css('::attr(permalink)').get(''),
+                    "commentType": select.css(se['comment_datatype']).get(),
+                    "upvotes": int(select.css(se['comment_upvotes']).get('0')),
+                    "created_at": select.css(se['comment_timestamp']).get('').split('.')[0] or None,
+                    "commentLink": self.api_address + select.css(se['comment_link']).get(''),
                 }
 
-        threads: list = []
+        if "t3_" not in post_id: post_id = f't3_{post_id}'
+        self.logger.debug(f'scraping comments from post_id: {post_id}')
 
-        self.logger.debug(f'scraping all comments from post_id: {post_id}')
+        response = self.get(self.api_address + f'/svc/shreddit/comments/{sub_name}/{post_id}?render-mode=partial').text  # this response will change after each request
+        next_link = lambda html: (Selector(text=html, type="html").css(se['comments_cursor']).getall() or [False])[-1]
+        while cursor := next_link(response):
+            if not (link := Selector(text=response, type="html").css(se['next_comments_page']).get()): break
+            yield from get_comment_section(response)
+            print(response)
+            response = self.post(
+                self.api_address + link,
+                data={
+                    'cursor': cursor,
+                    'csrf_token': self.cookies['csrf_token']
+                }
+            ).text
 
-        response = self.get(self.api_address + f'/svc/shreddit/comments/{sub_name}/{post_id}?render-mode=partial')
-        comments_section = Selector(text=response.text, type="html").css('shreddit-comment[permalink]')
-        for comment in comments_section:
-            if (author := comment.css('::attr(author)').get('')) and 'automoderator' in author.lower() or 'bot' in author.lower(): continue
-            if comment.css('::attr(depth)').get('') == '0':
-                replies = []
+        self.logger.debug(f'finished scraping comments from post_id: {post_id}')
 
-                for reply in comments_section[comments_section.index(comment) + 1:]:
-                    if comment == reply: continue
-                    if reply.css('::attr(depth)').get('') == '0': break
 
-                    comment_section = scrape(reply)
-                    if comment_section:
-                        replies.append(comment_section)
+if __name__ == "__main__":
+    api = RedditScraper()
+    total_comments = 0
+    for i in api.get_post_comments('t3_1efec9q', 'r/AITAH'):
+        if len(i) > 1:
+            print(i)
+            total_comments += len(i.get('replies', []))
+    print('total scraped comments:', total_comments)
+    exit(0)
 
-                threads.append({
-                    "thread": scrape(comment),
-                    "threadReplies": replies,
-                })
-
-        self.logger.debug(f'found: {len(comments_section)} comments on post_id: {post_id}')
-        threads.append({"commentsCount": len(comments_section)})
-        for comments in threads: yield comments
+    for i in api.get_home_feed(): print(i)
+    for i in api.get_community_info('r/AskReddit'): print(i)
+    for i in api.get_community_posts('AskReddit'): print(i)
+    for i in api.get_user_posts(''): print(i)
+    for i in api.get_user_info(''): print(i)

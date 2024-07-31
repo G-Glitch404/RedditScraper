@@ -1,5 +1,4 @@
 import logging
-from util.utils import path
 
 
 class Color:
@@ -20,13 +19,6 @@ class Logger(logging.LoggerAdapter):
             datefmt="%Y-%m-%d %H:%M:%S",
             handlers=[
                 logging.StreamHandler(),
-                logging.FileHandler(
-                    filename=path(f"logs//logger.log"),
-                    mode="a",
-                    delay=True,
-                    encoding="utf-8",
-                    errors="ignore",
-                ),
             ],
         )
 

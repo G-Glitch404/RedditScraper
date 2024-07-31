@@ -9,6 +9,8 @@ async def main() -> None:
         start_urls = actor_input.get('start_urls', [{'url': 'https://apify.com'}])
         max_depth = actor_input.get('max_depth', 1)
 
+        scraper = RedditScraper()
+
         if not start_urls:
             Actor.log.info('No start URLs specified in actor input, exiting...')
             await Actor.exit()

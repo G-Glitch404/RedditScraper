@@ -1,0 +1,52 @@
+select = {
+    # post selectors
+    "post_id": "::attr(id)",
+    "author_id": "::attr(author-id)",
+    "subreddit_id": "::attr(subreddit-id)",
+    "subreddit": "::attr(subreddit-prefixed-name)",
+    "post_author": "::attr(author)",
+    "post_title": "'::attr(post-title)",
+    "post_nsfw": "::attr(is-post-nsfw)",
+    "post_type": "'::attr(post-type)",
+    "post_flairs": "shreddit-post-flair ::text",
+    "post_index": "::attr(feedindex)",
+    "comments_count": "::attr(comment-count)",
+    "post_upvotes": "::attr(score)",
+    "content": 'div[data-post-click-location="text-body"] > div > p ::text',
+    "timestamp": "::attr(created-timestamp)",
+    "post_link": "::attr(permalink)",
+    "post_image_link": "::attr(content-href)",
+    "icon": "::attr(icon)",
+    "post": "article > shreddit-post[permalink]",
+    "posts_cursor": "faceplate-partial[src][method] ::attr(src)",
+
+    # user-profile selectors
+    "user_profile": "reddit-page-data ::attr(data)",
+    'user_description': 'p[data-testid="profile-description"] ::text',
+    'posts_karma': 'span[data-testid="karma-number"] ::text',
+    'comments_karma': 'span[data-testid="karma-number"]',
+    'cake_day': 'time[data-testid="cake-day"] ::text',
+
+    # subreddit-homepage info's selectors
+    'subreddit_homepage': 'reddit-page-data ::attr(data)',
+    'subreddit_title': 'shreddit-subreddit-header[name="{community_name}"] ::attr(display-name)',
+    'subreddit_description': 'shreddit-subreddit-header[name="{community_name}"] ::attr(description)',
+    'subreddit_members_count': 'shreddit-subreddit-header[name="{community_name}"] ::attr(subscribers)',
+    'subreddit_online_members_count': 'shreddit-subreddit-header[name="{community_name}"] ::attr(active)',
+    'subreddit_moderators': 'faceplate-tracker[source="moderator_list"] > a ::attr(href)',
+    'subreddit_rules': 'faceplate-auto-height-animator.block ::text',
+
+    # post comments selectors
+    'comment_section': 'shreddit-comment[permalink]',
+    'comment_depth': '::attr(depth)',
+    "comment_id": '::attr(thingid)',
+    "comment_post_id": '::attr(postid)',
+    "comment_datatype": '::attr(content-type)',
+    "comment_upvotes": '::attr(score)',
+    'comment_author': '::attr(author)',
+    'comment_body': 'div[slot="comment"] > div ::text',
+    'comment_timestamp': 'faceplate-timeago ::attr(ts)',
+    "comment_link": '::attr(permalink)',
+    'next_comments_page': 'faceplate-partial[src][method] ::attr(src)',
+    'comments_cursor': 'faceplate-partial[src][method="post"]>input[name="cursor"][type="hidden"][value] ::attr(value)',
+}

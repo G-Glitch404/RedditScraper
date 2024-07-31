@@ -2,15 +2,8 @@ import json
 import time
 import logging
 from functools import wraps
-from logger.logger import Logger
-from selenium.common.exceptions import (
-    NoSuchElementException,
-    StaleElementReferenceException,
-    ElementClickInterceptedException,
-    ElementNotInteractableException,
-)
+from logger import Logger
 
-execution_timer_logger = Logger(logging.getLogger('ExecutionTimer'), {})
 retry_logger = Logger(logging.getLogger('Retry'), {})
 catch_logger = Logger(logging.getLogger('ExceptionsHandler'), {})
 
@@ -19,10 +12,7 @@ def catch_exceptions(
         func,
         exceptions: tuple = (
                 Exception,
-                NoSuchElementException,
-                StaleElementReferenceException,
-                ElementClickInterceptedException,
-                ElementNotInteractableException
+                json.decoder.JSONDecodeError,
             )
         ):
     """ decorator for catching selenium exceptions """
@@ -50,21 +40,5 @@ def retry(
                 retry_logger.debug(f'function {func} failed with exception {e}')
             finally: time.sleep(interval)
         return func(*args, **kwargs)  # if error keeps occurring, return it
-
-    return wrapper
-
-
-def execution_timer(func, retries: int = 3, interval: int = 30):
-    """ wait interval seconds for cool down and retry on failure """
-    @catch_exceptions
-    def wrapper(*args, **kwargs):
-        execution_timer_logger.debug(f'waiting {interval} seconds for cool down')
-        for _ in range(retries):
-            time.sleep(interval)
-            func_return = func(*args, **kwargs)
-            if func_return: return func_return
-            else: execution_timer_logger.debug(f'function {func} failed with bad output retrying after {interval} seconds')
-
-        return func(*args, **kwargs)  # if failure keeps occurring, return it
 
     return wrapper
