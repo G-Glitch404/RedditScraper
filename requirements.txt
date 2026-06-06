@@ -5,3 +5,5 @@ python-dotenv~=1.2.2
 requests~=2.34.2
 browserforge~=1.2.4
 psycopg~=3.3.4
+psycopg-pool~=3.3.1
+psycopg-binary~=3.3.4

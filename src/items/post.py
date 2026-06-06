@@ -39,6 +39,7 @@ class Item(object):
 @dc.dataclass(slots=True)
 class Post(Item):
     """ scraper output dataclass """
+    post_id: str = None
     thumbnail: str = None
     title: str = None
     publisher: str = None
