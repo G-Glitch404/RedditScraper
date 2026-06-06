@@ -44,21 +44,32 @@ class Post(Item):
     title: str = None
     publisher: str = None
     publisher_id: str = None
-    flairs: str = None
-    awards: int = None
-    comments: int = None
+    post_flair: str = None
     subreddit: str = None
     subbreddit_id: str = None
-    score: int = None
     type: str = None
     body: str = None
     link: str = None
-    published: dt.datetime = None
-    modified: dt.datetime = None
+    score: int = None
+    upvotes: int = None
+    downvotes: int = None
+    upvote_ratio: int = None
+    total_awards: int = None
+    total_crossposts: int = None
+    total_comments: int = None
+    total_subreddit_subs: int = None
+    is_author_premium: bool = None
+    is_edited: bool = None
+    is_gild: bool = None
+    is_comments_still_active: bool = None
+    is_score_hidden: bool = None
     is_over_18: bool = None
+    is_locked: bool = None
+    is_spoiler: bool = None
     is_original_content: bool = None
     is_crosspostable: bool = None
     is_removed: dict[str, Any] = None
+    published_at: dt.datetime = None
     authors: list[dict[str, Any]] = None
     videos_urls: list[str] = None
     images_urls: list[str] = None
@@ -92,16 +103,28 @@ class Post(Item):
 
 @dc.dataclass(slots=True)
 class Comment(Item):
+    author: str = None
+    author_id: str = None
+    parent_id: str = None
+    comment_id: str = None
+    link_id: str = None
+    subreddit_id: str = None
+    subreddit: str = None
     score: int = None
     type: str = None
     body: str = None
     link: str = None
+    unrepliable_reason: str = None
+    can_send_replies: bool = None
+    is_score_hidden: bool = None
     is_over_18: bool = None
-    published: dt.datetime = None
-    modified: dt.datetime = None
-    replies: list[dict[str, Any]] = None
+    is_edited: bool = None
+    is_author_blocked: bool = None
+    published_at: dt.datetime = None
+    modified_at: dt.datetime = None
+    replies: list = None
 
     def __add__(self, other):
-        return Post(
+        return Comment(
             **{**dc.asdict(self), **dc.asdict(other)}
         )

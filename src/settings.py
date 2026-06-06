@@ -6,6 +6,8 @@ load_dotenv()
 
 
 settings = {
+    "REDDIT_ENDPOINT": 'https://www.reddit.com',
+
     "PROXIES": None,
     "VERBOSE": True,
     "LOGGING_LEVEL": logging.DEBUG,
