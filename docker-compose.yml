@@ -3,12 +3,12 @@ networks:
     external: true
 
 volumes:
-  news_logs:
+  reddit_logs:
 
 services:
   app:
     image: localhost/news-crawler:latest
-    container_name: news-crawler-app
+    container_name: reddit-crawler-app
     restart: unless-stopped
     env_file: ./.env
     environment:
