@@ -1,15 +1,23 @@
 {
-	"actorSpecification": 1,
-	"name": "Reddit Scraper",
-	"title": "Scraping Reddit.com for Posts and comments",
-	"description": "Scrapes titles of websites using BeautifulSoup.",
-	"version": "0.0",
-	"meta": {
-		"templateId": "python-beautifulsoup"
-	},
-	"input": "./input_schema.json",
-	"dockerfile": "./Dockerfile",
-	"storages": {
-		"dataset": "./dataset_schema.json"
+    "actorSpecification": 1,
+    "name": "the-ultimate-news-scrapper",
+    "title": "The Ultimate News Scrapper",
+    "description": "Scrape thousands of different news articles, from latest news up to 6 months old articles, all at a lightning speed",
+    "buildTag": "latest",
+    "version": "3.0",
+    "usesStandbyMode": false,
+    "minMemoryMbytes": 256,
+    "maxMemoryMbytes": 512,
+    "readme": "./readme.md",
+    "changelog": "./changelog.md",
+    "dockerfile": "./Dockerfile",
+    "input": "./input_schema.json",
+    "output": "./output_schema.json",
+    "storages": {
+        "keyValueStore": "./key_value_store_schema.json",
+        "dataset": "./dataset_schema.json"
+    },
+    "meta": {
+        "templateId": "python_empty"
     }
 }
