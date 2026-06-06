@@ -2,6 +2,7 @@ import json.decoder
 from typing import Any, Callable
 
 from src.core.session import Session
+from src.items.post import Post
 from src.core.logger import Logger
 
 
@@ -27,24 +28,24 @@ class RedditCrawler:
         self.logger.debug(f"successfully scraped json from url: {reddit_url} ")
         return json_response
 
-    def parse_subreddit(self, payload: dict[str, Any]) -> dict[str, Any]:
-        """Parse subreddit level data from a reddit payload"""
+    def parse_subreddit(self, post_obj: Post, payload: dict[str, Any]) -> dict[str, Any]:
+        """ parse subreddit level data from a reddit payload """
         raise NotImplementedError
 
-    def parse_post(self, payload: dict[str, Any]) -> dict[str, Any]:
-        """Parse post level data from a reddit payload"""
+    def parse_post(self, post_obj: Post, payload: dict[str, Any]) -> dict[str, Any]:
+        """ parse post level data from a reddit payload """
         raise NotImplementedError
 
-    def parse_users(self, payload: dict[str, Any]) -> list[dict[str, Any]]:
-        """Parse users from a reddit payload"""
+    def parse_users(self, post_obj: Post, payload: dict[str, Any]) -> list[dict[str, Any]]:
+        """ parse users from a reddit payload """
         raise NotImplementedError
 
-    def parse_comments(self, payload: dict[str, Any]) -> list[dict[str, Any]]:
+    def parse_comments(self, post_obj: Post, payload: dict[str, Any]) -> list[dict[str, Any]]:
         """ parse comments from a reddit payload """
         raise NotImplementedError
 
-    def build_response(self, url: str) -> dict[str, Any]:
-        """Build the final api response payload"""
+    async def crawl_comments_section(self, post_obj: Post, reddit_url: str) -> dict[str, Any]:
+        """ crawl the whole comment section if it has more than 75 comments """
         raise NotImplementedError
 
     async def crawl(self, reddit_url: str) -> dict[str, Any]:
