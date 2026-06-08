@@ -3,37 +3,11 @@ import dataclasses as dc
 
 from typing import Any
 from psycopg import sql
-from core.database import Database
+
+from src.core.database import Database
+from src.items.item import Item
 
 db = Database()
-
-
-@dc.dataclass(slots=True)
-class Item(object):
-    def get(self, key: str) -> Any:
-        """ get attribute value """
-        return getattr(self, key)
-
-    def as_dict(self) -> dict:
-        return dc.asdict(self)
-
-    def __iter__(self):
-        for f in dc.fields(self):
-            yield f.name, getattr(self, f.name)
-
-    def __getitem__(self, key: str) -> Any:
-        return getattr(self, key)
-
-    def __setitem__(self, key: str, value: Any):
-        setattr(self, key, value)
-
-    def __str__(self) -> str:
-        return str(dc.asdict(self))
-
-    def __hash__(self):
-        return hash(
-            tuple(self)
-        )
 
 
 @dc.dataclass(slots=True)
@@ -48,6 +22,7 @@ class Post(Item):
     subreddit: str = None
     subbreddit_id: str = None
     type: str = None
+    subreddit_type: str = None
     body: str = None
     link: str = None
     score: int = None
@@ -97,34 +72,5 @@ class Post(Item):
 
     def __add__(self, other):
         return Post(
-            **{**dc.asdict(self), **dc.asdict(other)}
-        )
-
-
-@dc.dataclass(slots=True)
-class Comment(Item):
-    author: str = None
-    author_id: str = None
-    parent_id: str = None
-    comment_id: str = None
-    link_id: str = None
-    subreddit_id: str = None
-    subreddit: str = None
-    score: int = None
-    type: str = None
-    body: str = None
-    link: str = None
-    unrepliable_reason: str = None
-    can_send_replies: bool = None
-    is_score_hidden: bool = None
-    is_over_18: bool = None
-    is_edited: bool = None
-    is_author_blocked: bool = None
-    published_at: dt.datetime = None
-    modified_at: dt.datetime = None
-    replies: list = None
-
-    def __add__(self, other):
-        return Comment(
             **{**dc.asdict(self), **dc.asdict(other)}
         )

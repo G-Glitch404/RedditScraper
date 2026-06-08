@@ -1,0 +1,32 @@
+import datetime as dt
+import dataclasses as dc
+
+from src.items.item import Item
+
+
+@dc.dataclass(slots=True)
+class Comment(Item):
+    author: str = None
+    author_id: str = None
+    parent_id: str = None
+    comment_id: str = None
+    link_id: str = None
+    subreddit_id: str = None
+    subreddit: str = None
+    score: int = None
+    type: str = None
+    body: str = None
+    link: str = None
+    unrepliable_reason: str = None
+    can_send_replies: bool = None
+    is_score_hidden: bool = None
+    is_over_18: bool = None
+    is_edited: bool = None
+    is_author_blocked: bool = None
+    published_at: dt.datetime = None
+    replies: list = None
+
+    def __add__(self, other):
+        return Comment(
+            **{**dc.asdict(self), **dc.asdict(other)}
+        )
