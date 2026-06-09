@@ -5,74 +5,218 @@
             "title": "Overview",
             "transformation": {
                 "fields": [
-                    "Icon",
-                    "Title",
-                    "Summary",
-                    "Publisher",
-                    "Authors",
-                    "Category",
-                    "Article Type",
-                    "Published",
-                    "Modified",
-                    "Tags",
-                    "Body",
-                    "URL",
-                    "Images"
+                    "thumbnail",
+                    "post_id",
+                    "publisher_id",
+                    "subbreddit_id",
+                    "type",
+                    "subreddit_type",
+                    "title",
+                    "post_flair",
+                    "publisher",
+                    "subreddit",
+                    "published_at",
+                    "body",
+                    "score",
+                    "upvote_ratio",
+                    "upvotes",
+                    "downvotes",
+                    "total_awards",
+                    "total_crossposts",
+                    "total_comments",
+                    "total_subreddit_subs",
+                    "is_author_premium",
+                    "is_edited",
+                    "is_gild",
+                    "is_comments_still_active",
+                    "is_score_hidden",
+                    "is_over_18",
+                    "is_locked",
+                    "is_spoiler",
+                    "is_original_content",
+                    "is_crosspostable",
+                    "is_removed",
+                    "link",
+                    "images_urls",
+                    "videos_urls",
+                    "replies"
                 ]
             },
             "display": {
                 "component": "table",
                 "properties": {
-                    "Icon": {
-                        "label": "Icon",
+                    "Thumbnail": {
+                        "label": "Thumbnail",
                         "format": "image"
                     },
+
+                    "Post id": {
+                        "label": "Post id",
+                        "format": "text"
+                    },
+
+                    "Publisher id": {
+                        "label": "Publisher id",
+                        "format": "text"
+                    },
+
+                    "Subreddit id": {
+                        "label": "Article Type",
+                        "format": "text"
+                    },
+
+                    "Post Type": {
+                        "label": "Post Type",
+                        "format": "text"
+                    },
+
+                    "Subreddit Type": {
+                        "label": "Subreddit Type",
+                        "format": "text"
+                    },
+
                     "Title": {
                         "label": "Title",
                         "format": "text"
                     },
-                    "Summary": {
-                        "label": "Summary",
+
+                    "Post Flair": {
+                        "label": "Post Flair",
                         "format": "text"
                     },
+
                     "Publisher": {
                         "label": "Publisher",
                         "format": "text"
                     },
-                    "Authors": {
-                        "label": "Authors",
-                        "format": "array"
-                    },
-                    "Category": {
-                        "label": "Category",
+
+                    "Subreddit": {
+                        "label": "Subreddit",
                         "format": "text"
                     },
-                    "Article Type": {
-                        "label": "Article Type",
-                        "format": "text"
-                    },
+
                     "Published": {
                         "label": "Published",
                         "format": "date"
                     },
-                    "Modified": {
-                        "label": "Modified",
-                        "format": "date"
-                    },
-                    "Tags": {
-                        "label": "Tags",
-                        "format": "array"
-                    },
+
                     "Body": {
                         "label": "Body",
-                        "format": "text"
+                        "format": "date"
                     },
-                    "URL": {
-                        "label": "URL",
+
+                    "Score": {
+                        "label": "Score",
+                        "format": "integer"
+                    },
+
+                    "Upvote Ratio": {
+                        "label": "Upvote Ratio",
+                        "format": "float"
+                    },
+
+                    "Upvotes": {
+                        "label": "Upvotes",
+                        "format": "integer"
+                    },
+
+                    "Downvotes": {
+                        "label": "Downvotes",
+                        "format": "integer"
+                    },
+
+                    "Total Awards": {
+                        "label": "Total Awards",
+                        "format": "integer"
+                    },
+
+                    "Total Crossposts": {
+                        "label": "Total Crossposts",
+                        "format": "integer"
+                    },
+
+                    "Total Comments": {
+                        "label": "Total Comments",
+                        "format": "integer"
+                    },
+
+                    "Total Subreddit Subscriptions": {
+                        "label": "Total Subreddit Subscriptions",
+                        "format": "integer"
+                    },
+
+                    "is author premium": {
+                        "label": "is author premium",
+                        "format":"boolean"
+                    },
+
+                    "is edited":{
+                        "label": "is edited",
+                        "format": "boolean"
+                    },
+
+                    "is gild": {
+                        "label": "is gild",
+                        "format": "boolean"
+                    },
+
+                    "is comments still active":{
+                        "label": "is comments still active",
+                        "format": "boolean"
+                    },
+
+                    "is score hidden": {
+                        "label": "is score hidden",
+                        "format": "boolean"
+                    },
+
+                    "is over 18":{
+                        "label": "is over 18",
+                        "format": "boolean"
+                    },
+
+                    "is locked": {
+                        "label": "is locked",
+                        "format": "boolean"
+                    },
+
+                    "is spoiler":{
+                        "label": "is spoiler",
+                        "format": "boolean"
+                    },
+
+                    "is original content": {
+                        "label": "is original content",
+                        "format": "boolean"
+                    },
+
+                    "is crosspostable":{
+                        "label": "is crosspostable",
+                        "format": "boolean"
+                    },
+
+                    "is removed": {
+                        "label": "is removed",
+                        "format": "boolean"
+                    },
+
+                    "Link": {
+                        "label": "Link",
                         "format": "link"
                     },
+
                     "Images": {
                         "label": "Images",
+                        "format": "array"
+                    },
+
+                    "Videos": {
+                        "label": "Videos",
+                        "format": "array"
+                    },
+
+                    "Replies": {
+                        "label": "Replies",
                         "format": "array"
                     }
                 }

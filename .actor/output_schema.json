@@ -1,12 +1,12 @@
 {
   "actorOutputSchemaVersion": 1,
-  "title": "Ultimate-News-Scraper",
+  "title": "Ultimate-Reddit-Scraper",
   "description": "Ultimate News Scraper Outputs",
   "properties": {
     "results": {
       "type": "string",
       "title": "results",
-      "description": "All articles scraped by the actor",
+      "description": "All Reddit posts scraped by the actor",
       "template": "{{links.apiDefaultDatasetUrl}}/items"
     },
     "articles_kv": {

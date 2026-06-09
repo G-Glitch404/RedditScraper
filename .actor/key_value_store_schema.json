@@ -3,9 +3,9 @@
     "title": "Key-Value Store Schema",
     "collections": {
         "Articles": {
-            "title": "Articles",
-            "keyPrefix": "articles-",
-            "description": "All articles scraped by the actor."
+            "title": "Posts",
+            "keyPrefix": "posts-",
+            "description": "All Posts scraped by the actor."
         }
     }
 }

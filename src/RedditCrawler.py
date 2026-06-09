@@ -70,6 +70,7 @@ class RedditCrawler:
         post_obj["type"] = payload["post_hint"].split(":")[-1]
         post_obj["published_at"] = dt.datetime.fromtimestamp(payload["created_utc"], tz=dt.timezone.utc)
         post_obj["videos_urls"] = [payload["url_overridden_by_dest"], payload["preview"]["reddit_video_preview"]["fallback_url"]]
+        post_obj["images_urls"] = []  # TODO: work this out
         post_obj["is_crosspostable"] = payload["is_crosspostable"]
         post_obj["total_crossposts"] = payload["num_crossposts"]
         post_obj["is_over_18"] = payload["over_18"]
@@ -272,3 +273,7 @@ class CommentsCrawler(RedditCrawler):
         payload["parent_id"] = post_id
 
         return [comment async for comment in self.crawl_deep_comment_sec(payload)]
+
+
+if __name__ == '__main__':
+    pass
