@@ -1,10 +1,13 @@
+from src.settings import settings
+
 import time
 from src.RedditCrawler import RedditCrawler
 
 
-async def test_scrape_comment() -> None:
+async def test_scrape_post() -> None:
     link: str = ""
     total_comments = 0
+    settings["CRAWL_COMMENTS_SECTION"] = True
     start = time.time()
 
     crawler = RedditCrawler()
@@ -26,6 +29,6 @@ async def test_scrape_comment() -> None:
                     total_comments += len(reply_v)
                     print(f"len_2: {len(reply_v)}\n")
 
-    assert total_comments >= 1
+    assert total_comments >= 200
     end = time.time()
     print("\nOperation took: ", round((end-start), 2), f' secs and total comments: {total_comments}')

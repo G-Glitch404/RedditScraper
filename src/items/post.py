@@ -15,8 +15,9 @@ class Post(Item):
     """ scraper output dataclass """
     thumbnail: str = None
     post_id: str = None
+    crosspost_parent: str = None
     publisher_id: str = None
-    subbreddit_id: str = None
+    subreddit_id: str = None
     type: str = None
     subreddit_type: str = None
     title: str = None
@@ -33,6 +34,9 @@ class Post(Item):
     total_crossposts: int = None
     total_comments: int = None
     total_subreddit_subs: int = None
+    is_hidden: bool = None
+    is_crosspost: bool = None
+    is_pinned: bool = None
     is_author_premium: bool = None
     is_edited: bool = None
     is_gild: bool = None
@@ -47,7 +51,7 @@ class Post(Item):
     link: str = None
     images_urls: list[str] = None
     videos_urls: list[str] = None
-    replies: list[dict[str, Any]] = None
+    comments: list[dict[str, Any]] = None
 
     def insert_to_db(self, table_name: str = "reddit_posts") -> bool:
         """ inserts the profile items into the Database object """

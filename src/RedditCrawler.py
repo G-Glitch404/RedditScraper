@@ -1,43 +1,46 @@
+import datetime as dt
 import asyncio
 import json.decoder
 import time
 import urllib.parse
-import datetime as dt
 
-from typing import Union, Optional, Any, Callable, Coroutine, AsyncGenerator
+from typing import Union, Optional, Any, Coroutine, AsyncGenerator
 
 from src.core.session import Session
+from src.settings import settings
+from src.core.logger import Logger
 from src.items.post import Post
 from src.items.comment import Comment
-from src.core.logger import Logger
-from src.settings import settings
+from src.util.utils import extract, normalize_url, pagination
 
 
 class RedditCrawler:
     def __init__(self):
-        self.normalize_url: Callable[[str], str] = lambda reddit_url: reddit_url.strip().split("?", 1)[0].replace('/.json', '').replace('//', '/') + '/.json'
-        self.pagination: Callable[[dict], dict[str, str]] = lambda payload: {"after": payload["data"]["after"]}
-
         self.session = Session()
         self.logger = Logger("RedditCrawler")
-        self.comments_crawler = CommentsCrawler()
 
+        self.session.headers.update({
+            "Cookie": f"loid={settings['REDDIT_LOID_COOKIE']}; "
+                      f"reddit_session={settings['REDDIT_SESSION_COOKIE']}",
+        })
+
+        self.comments_crawler = CommentsCrawler(self.session, self.logger)
         self.logger.info("Crawler initialized successfully")
 
     async def fetch_json(
             self,
             reddit_url: str,
-            pagination: Optional[dict[str, str]] = None
-    ) -> Union[list[dict[str, Any]], dict[str, Any]]:
+            next_pagination: Optional[dict[str, str]] = None
+    ) -> Union[list[dict[str, Any]], dict[str, Any], None]:
         """ fetch raw reddit JSON from a url """
-        json_url: str = self.normalize_url(reddit_url)
-        if pagination: json_url = json_url + f'?after={pagination["after"]}'
+        json_url: str = normalize_url(reddit_url)
+        if next_pagination: json_url = json_url + f'?after={next_pagination["after"]}'
         response = await self.session.get(json_url)
 
         try: json_response: list[dict[str, Any]] = response.json()
         except json.decoder.JSONDecodeError as e:
-            self.logger.error(f"couldn't scrape post with  e: {str(e)}  url: {reddit_url}  json_url: {json_url}")
-            return [{}]
+            self.logger.error(f"couldn't scrape post with \n\n e: {str(e)} \n\n url: {reddit_url} \n\n json_url: {json_url} \n\n response_text: {response.text} \n\n response_headers: {response.headers} \n\n request_headers: {response.request.headers}\n")
+            return None
 
         self.logger.debug(f"successfully scraped json from url: {reddit_url} ")
         return json_response
@@ -45,46 +48,50 @@ class RedditCrawler:
     @staticmethod
     async def _parse_subreddit(post_obj: Post, payload: dict[str, Any]) -> Post:
         """ parse subreddit level data from a reddit payload """
-        post_obj["subreddit"] = payload["subreddit_name_prefixed"]
-        post_obj["subreddit_id"] = payload["subreddit_id"]
-        post_obj["total_subreddit_subs"] = payload["subreddit_subscribers"]
-        post_obj["subreddit_type"] = payload["subreddit_type"]
+        post_obj["subreddit"] = extract(payload, "subreddit_name_prefixed")
+        post_obj["subreddit_id"] = extract(payload, "subreddit_id")
+        post_obj["total_subreddit_subs"] = extract(payload, "subreddit_subscribers")
+        post_obj["subreddit_type"] = extract(payload, "subreddit_type")
 
         return post_obj
 
     @staticmethod
     async def _parse_post(post_obj: Post, payload: dict[str, Any]) -> Post:
         """ parse post level data from a reddit payload """
-        post_obj["thumbnail"] = payload["media"]["oembed"]["thumbnail_url"]
-        post_obj["post_id"] = payload["name"]
-        post_obj["title"] = payload["title"]
-        post_obj["link"] = settings['REDDIT_ENDPOINT'] + payload["permalink"]
-        post_obj["total_awards"] = payload["total_awards_received"]
-        post_obj["is_score_hidden"] = payload["hide_score"]
-        post_obj["score"] = payload["score"]
-        post_obj["upvotes"] = payload["ups"]
-        post_obj["downvotes"] = payload["downs"]
-        post_obj["upvote_ratio"] = payload["upvote_ratio"]
-        post_obj["is_original_content"] = payload["is_original_content"]
-        post_obj["post_flair"] = payload["link_flair_text"]
-        post_obj["type"] = payload["post_hint"].split(":")[-1]
-        post_obj["published_at"] = dt.datetime.fromtimestamp(payload["created_utc"], tz=dt.timezone.utc)
-        post_obj["videos_urls"] = [payload["url_overridden_by_dest"], payload["preview"]["reddit_video_preview"]["fallback_url"]]
+        post_obj["thumbnail"] = extract(payload, "media", "oembed", "thumbnail_url")
+        post_obj["crosspost_parent"] = extract(payload, "crosspost_parent")
+        post_obj["post_id"] = extract(payload, "name")
+        post_obj["title"] = extract(payload, "title")
+        post_obj["link"] = settings['REDDIT_ENDPOINT'] + extract(payload, "permalink")
+        post_obj["total_awards"] = extract(payload, "total_awards_received")
+        post_obj["is_score_hidden"] = extract(payload, "hide_score")
+        post_obj["score"] = extract(payload, "score")
+        post_obj["upvotes"] = extract(payload, "ups")
+        post_obj["downvotes"] = extract(payload, "downs")
+        post_obj["upvote_ratio"] = extract(payload, "upvote_ratio")
+        post_obj["is_original_content"] = extract(payload, "is_original_content")
+        post_obj["post_flair"] = extract(payload, "link_flair_text")
+        post_obj["type"] = extract(payload, "post_hint", default='').split(":")[-1] or None
+        post_obj["published_at"] = dt.datetime.fromtimestamp(extract(payload, "created_utc"), tz=dt.timezone.utc)
+        post_obj["videos_urls"] = [extract(payload, "url_overridden_by_dest"), extract(payload, "preview", "reddit_video_preview", "fallback_url")]
         post_obj["images_urls"] = []  # TODO: work this out
-        post_obj["is_crosspostable"] = payload["is_crosspostable"]
-        post_obj["total_crossposts"] = payload["num_crossposts"]
-        post_obj["is_over_18"] = payload["over_18"]
-        post_obj["is_gild"] = payload["can_gild"]
-        post_obj["is_edited"] = payload["edited"]
-        post_obj["is_locked"] = payload["locked"]
-        post_obj["is_spoiler"] = payload["spoiler"]
-        post_obj["is_author_premium"] = payload["author_premium"]
+        post_obj["is_crosspostable"] = extract(payload, "is_crosspostable")
+        post_obj["total_crossposts"] = extract(payload, "num_crossposts")
+        post_obj["is_crosspost"] = True if post_obj["crosspost_parent"] else False
+        post_obj["is_over_18"] = extract(payload, "over_18")
+        post_obj["is_gild"] = extract(payload, "can_gild")
+        post_obj["is_edited"] = extract(payload, "edited")
+        post_obj["is_pinned"] = extract(payload, "pinned")
+        post_obj["is_hidden"] = extract(payload, "hidden")
+        post_obj["is_locked"] = extract(payload, "locked")
+        post_obj["is_spoiler"] = extract(payload, "spoiler")
+        post_obj["is_author_premium"] = extract(payload, "author_premium")
         post_obj["is_removed"] = {
-            "num_reports": payload["num_reports"],
-            "removed_by": payload["removed_by"],
-            "reason": payload["removal_reason"],
-            "is_publisher_blocked": payload["author_is_blocked"],
-            "mod_reason": payload["mod_reason_by"],
+            "num_reports": extract(payload, "num_reports"),
+            "removed_by": extract(payload, "removed_by"),
+            "reason": extract(payload, "removal_reason"),
+            "is_publisher_blocked": extract(payload, "author_is_blocked"),
+            "mod_reason": extract(payload, "mod_reason_by"),
         }
 
         return post_obj
@@ -92,53 +99,62 @@ class RedditCrawler:
     @staticmethod
     async def _parse_user(post_obj: Post, payload: dict[str, Any]) -> Post:
         """ parse users from a reddit payload """
-        post_obj["publisher"] = payload["author"]
-        post_obj["publisher_id"] = payload["author_fullname"]
-        post_obj["total_comments"] = payload["num_comments"]
-        post_obj["is_comments_still_active"] = payload["send_replies"]
+        post_obj["publisher"] = extract(payload, "author")
+        post_obj["publisher_id"] = extract(payload, "author_fullname")
+        post_obj["total_comments"] = extract(payload, "num_comments")
+        post_obj["is_comments_still_active"] = extract(payload, "send_replies")
 
         return post_obj
 
     async def _parse_comment(self, raw_comment: dict[str, Any]) -> Comment:
         comment = Comment()
 
-        comment["author"] = raw_comment["author"]
-        comment["author_id"] = raw_comment["author_fullname"]
-        comment["comment_id"] = raw_comment["name"]
-        comment["parent_id"] = raw_comment["parent_id"]
-        comment["link_id"] = raw_comment["link_id"]
-        comment["subreddit_id"] = raw_comment["subreddit_id"]
-        comment["subreddit"] = raw_comment["subreddit_name_prefixed"]
-        comment["body"] = raw_comment["body"]
-        comment["score"] = raw_comment["score"]
-        comment["is_score_hidden"] = raw_comment["score_hidden"]
-        comment["upvotes_ratio"] = raw_comment["upvotes_ratio"]
-        comment["downvotes"] = raw_comment["downs"]
-        comment["upvotes"] = raw_comment["ups"]
-        comment["link"] = settings['REDDIT_ENDPOINT'] + raw_comment["permalink"]
-        comment["can_send_replies"] = raw_comment["send_replies"]
-        comment["unrepliable_reason"] = raw_comment["unrepliable_reason"]
-        comment["is_post_comment"] = raw_comment["parent_id"] == raw_comment["link_id"]
+        comment["author"] = extract(raw_comment, "author")
+        comment["author_id"] = extract(raw_comment, "author_fullname")
+        comment["comment_id"] = extract(raw_comment, "name")
+        comment["parent_id"] = extract(raw_comment, "parent_id")
+        comment["link_id"] = extract(raw_comment, "link_id")
+        comment["subreddit_id"] = extract(raw_comment, "subreddit_id")
+        comment["subreddit"] = extract(raw_comment, "subreddit_name_prefixed")
+        comment["body"] = extract(raw_comment, "body")
+        comment["score"] = extract(raw_comment, "score")
+        comment["is_score_hidden"] = extract(raw_comment, "score_hidden")
+        comment["upvotes_ratio"] = extract(raw_comment, "upvotes_ratio")
+        comment["downvotes"] = extract(raw_comment, "downs")
+        comment["upvotes"] = extract(raw_comment, "ups")
+        comment["link"] = settings['REDDIT_ENDPOINT'] + permalink if (permalink := extract(raw_comment, "permalink")) and not comment["link"] else None
+        comment["can_send_replies"] = extract(raw_comment, "send_replies")
+        comment["unrepliable_reason"] = extract(raw_comment, "unrepliable_reason")
+        comment["is_post_comment"] = extract(raw_comment, "parent_id") == extract(raw_comment, "link_id")
         comment["is_reply"] = False if comment["is_post_comment"] else True
-        comment["is_edited"] = comment["edited"]
-        comment["is_author_blocked"] = raw_comment["author_is_blocked"]
-        comment["published_at"] = dt.datetime.fromtimestamp(raw_comment["created_utc"], tz=dt.timezone.utc)
-        comment["replies"] = await self.comments_crawler.crawl_comment_replies(comment["link_id"], raw_comment["replies"])
+        comment["is_edited"] = extract(raw_comment, "edited")
+        comment["is_author_blocked"] = extract(raw_comment, "author_is_blocked")
+        comment["published_at"] = dt.datetime.fromtimestamp(timestamp, tz=dt.timezone.utc) if (timestamp := extract(raw_comment, "created_utc")) else None
 
+        comment["replies"] = []
+        if raw_replies := extract(raw_comment, "replies", "data", "children"):
+            comment["replies"] = (await self._parse_comment_sec(comment["link_id"], comment["subreddit"], Post(), raw_replies))["comments"]
         return comment
 
-    async def _parse_comment_sec(self, post_obj: Post, payload: list[dict[str, Any]]) -> Post:
+    async def _parse_comment_sec(
+            self,
+            link_id: str,
+            subreddit: str,
+            post_obj: Post,
+            payload: list[dict[str, Any]]
+    ) -> Post:
         """ parse comments section from a reddit's post JSON payload """
         extracted_comments: int = 0
+        post_obj["comments"] = []
         for raw_comment_ in payload:
-            if raw_comment_["kind"] == 'more':
-                async for comment_ in self.comments_crawler.crawl_deep_comment_sec(raw_comment_["data"]):
-                    post_obj["replies"].appened(comment_)
+            if raw_comment_["kind"] == 'more' and link_id:
+                async for comment_ in self.comments_crawler.crawl_deep_comment_sec(subreddit, raw_comment_["data"], link_id):
+                    post_obj["comments"].append(comment_)
                     extracted_comments += 1
 
             raw_comment_: dict = raw_comment_["data"]
             comment_: Comment = await self._parse_comment(raw_comment_)
-            post_obj["replies"].appened(comment_)
+            post_obj["comments"].append(comment_)
             extracted_comments += 1
 
         return post_obj
@@ -158,7 +174,12 @@ class RedditCrawler:
 
         if comment_sec_payload:
             tasks_.append(
-                self._parse_comment_sec(post_obj=post, payload=comment_sec_payload)
+                self._parse_comment_sec(
+                    link_id=payload['name'],
+                    subreddit=payload['subreddit_name_prefixed'],
+                    post_obj=post,
+                    payload=comment_sec_payload,
+                )
             )
 
         posts: tuple[Post, ...] = await asyncio.gather(*tasks_)
@@ -176,39 +197,51 @@ class RedditCrawler:
         """ main function to initiate the full crawl pipeline """
         url_path: list[str] = urllib.parse.urlparse(reddit_url).path.strip("/").split("/")
         reddit_payload: Union[dict[str, Any], list[dict[str, Any]]] = await self.fetch_json(reddit_url)
+        if reddit_payload is None:
+            self.logger.error(f"crawling failed for post with  link: {reddit_url}")
+            return
 
-        if "/comments/" in reddit_url:  # scraping from 1 post
-            self.logger.info(f"detected a post url, initiated scraping a singler post")
-            post_payload: dict[str, Any] = reddit_payload[0]["data"]["children"][0]["data"]
-            comments_payload: list[dict[str, Any]] = reddit_payload[1]["data"]["children"]
-            yield await self.parse(post_payload, comments_payload)
+        if "/comments/" in reddit_url:  # scraping 1 post
+            start_time: float = time.time()
+            self.logger.debug(f"detected a post url, initiated scraping a singler post")
 
-        elif 2 <= len(url_path) <= 3:  # scraping a whole subreddit (with amount limitations ofc)
+            post_payload: dict[str, Any] = extract(reddit_payload, 0, "data", "children", 0, "data")
+            comments_payload: list[dict[str, Any]] = extract(reddit_payload, 1, "data", "children")
+            post: Post = await self.parse(post_payload, comments_payload)
+
+            end_time: float = time.time()
+            self.logger.info(f"scraped post successfully, Took: {round((end_time-start_time)/60, 2)} mins")
+
+            yield post
+
+        elif len(url_path) >= 2:  # scraping a subreddit/user/custom_feed (with amount limitations)
             if (not isinstance(max_amount, int)) or (max_amount > settings['MAX_AMOUNT_LIMIT']):
                 self.logger.warning(f"max_amount is malformed resetting it from ({type(max_amount)}, {max_amount}) to (int, {settings['MAX_AMOUNT_LIMIT']})")
                 max_amount: int = settings["MAX_AMOUNT_LIMIT"]
 
-            self.logger.info(f"detected a subreddit url, initiated scraping from a subreddit with max_amount: '{max_amount}'")
+            self.logger.info(f"detected a large operation url, initiated scraping from a group response with   Link: {reddit_url}   max_amount: '{max_amount}'")
 
             extracted_posts_num: int = 0
-            last_pagination: dict[str, str] = {}
+            last_pagination: dict[str, str] = {"after": ''}
             start_time: float = time.time()
 
             while extracted_posts_num < max_amount:
-                pagination: dict[str, str] = self.pagination(reddit_payload)
-                if last_pagination["after"] == pagination["after"]:
-                    self.logger.info('Crawler reached max found posts for this subreddit exiting...')
+                next_pagination: dict[str, str] = pagination(reddit_payload)
+                try: stop_loop: bool = last_pagination["after"] == next_pagination["after"]
+                except KeyError: stop_loop: bool = True
+                if stop_loop:
+                    self.logger.info('Crawler reached max found posts for this link exiting...')
                     break
 
-                reddit_payload: Union[dict[str, Any], list[dict[str, Any]]] = await self.fetch_json(reddit_url, pagination=pagination)
-                tasks: list[Coroutine[None, None, Post]] = [self.parse(raw_post["data"]) for raw_post in reddit_payload["data"]["children"]]
+                reddit_payload: Union[dict[str, Any], list[dict[str, Any]]] = await self.fetch_json(reddit_url, next_pagination)
+                tasks: list[Coroutine[None, None, Post]] = [self.parse(raw_post["data"]) for raw_post in extract(reddit_payload, "data", "children")]
                 extracted_posts: tuple[Post] = await asyncio.gather(*tasks)
 
                 self.logger.debug(f"scraped {len(extracted_posts)} posts yielding results now...")
                 for extracted_post in extracted_posts:
                     yield extracted_post
                 extracted_posts_num += len(extracted_posts)
-                last_pagination: dict[str, str] = pagination
+                last_pagination: dict[str, str] = next_pagination
 
             end_time: float = time.time()
             self.logger.info(f"crawler loop exited, Found Posts: {extracted_posts_num} and Took: {round((end_time-start_time)/60, 1)} mins")
@@ -220,9 +253,10 @@ class RedditCrawler:
         self.logger.info('Crawler finished scraping and existed successfully')
 
 
-class CommentsCrawler(RedditCrawler):
-    def __init__(self):
-        super(CommentsCrawler, self).__init__()
+class CommentsCrawler:
+    def __init__(self, session: Session, logger: Logger):
+        self.session = session
+        self.logger = logger
 
     async def _fetch_comment_sec(self, post_id: str, children: list[str]) -> list[Union[dict[str, Any], None]]:
         response = await self.session.get(
@@ -230,7 +264,7 @@ class CommentsCrawler(RedditCrawler):
             params={
                 "api_type": 'json',
                 "link_id": post_id,
-                "children": children,
+                "children": ','.join(children).strip(','),
                 "limit_children": True,
                 "raw_json": 1,
             },
@@ -242,38 +276,33 @@ class CommentsCrawler(RedditCrawler):
                 f"couldn't scrape post comment section -  "
                 f"e: {str(e)}  "
                 f"post_id: {post_id}  "
-                f"response_text: {response.text if len(response.text) < 500 else f'{response.text[:500]}...{response.text[-500:0]}'}"
+                f"response_text: {response.text if len(response.text) < 1700 else f'{response.text[:850]}...{response.text[-850:]}'}"
             )
             return []
 
         return json_response["json"]["data"]["things"]
 
-    async def crawl_deep_comment_sec(self, reddit_payload: dict[str, Any]) -> AsyncGenerator[Comment, None]:
+    async def crawl_deep_comment_sec(
+            self,
+            subreddit: str,
+            reddit_payload: dict[str, Any],
+            post_id: Optional[str] = None
+    ) -> AsyncGenerator[Comment, None]:
         """ crawl and collect all nested comments from comments section payload """
-        post_id: str = reddit_payload['parent_id']
-        children_nodes: list[str] = reddit_payload["children"]
+        post_id: str = post_id or extract(reddit_payload, 'parent_id')
+        children_nodes: list[str] = extract(reddit_payload, "children")
 
-        for idx in range(0, len(children_nodes), 100):
-            node: list[str] = children_nodes[idx: idx + 100]
+        for idx in range(0, len(children_nodes), 99):
+            node: list[str] = children_nodes[idx: idx + 99]
             comments_batch: list[dict[str, Any]] = await self._fetch_comment_sec(post_id, node)
 
             for raw_comment in comments_batch:
                 comment = Comment()
 
-                comment["parent_id"] = raw_comment["parent"]
-                comment["link_id"] = raw_comment["link"]
-                comment["comment_id"] = raw_comment["id"]
-                comment["body"] = raw_comment["contentText"]
+                comment["parent_id"] = extract(raw_comment, "parent")
+                comment["link_id"] = extract(raw_comment, "link")
+                comment["comment_id"] = extract(raw_comment, "id")
+                comment["body"] = extract(raw_comment, "contentText")
+                comment["link"] = f'{settings["REDDIT_ENDPOINT"]}/{subreddit}/comments/{post_id.split("_", 1)[-1]}/comment/{comment["comment_id"]}'
 
-                yield comment
-
-    async def crawl_comment_replies(self, post_id: str, reddit_payload: dict[str, Any]) -> list[Comment]:
-        """ crawl and collect all nested replies for any comment from it is payload """
-        payload: dict[str, Any] = reddit_payload["data"]
-        payload["parent_id"] = post_id
-
-        return [comment async for comment in self.crawl_deep_comment_sec(payload)]
-
-
-if __name__ == '__main__':
-    pass
+                if comment["comment_id"]: yield comment

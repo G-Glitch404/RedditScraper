@@ -6,7 +6,7 @@
     "buildTag": "latest",
     "version": "1.0",
     "usesStandbyMode": false,
-    "minMemoryMbytes": 256,
+    "minMemoryMbytes": 1024,
     "maxMemoryMbytes": 4096,
     "readme": "./readme.md",
     "changelog": "./changelog.md",

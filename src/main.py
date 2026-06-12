@@ -1,17 +1,19 @@
 import datetime as dt
 
 from apify import Actor
-from typing import Any
+from typing import Any, Optional
 
 from src.RedditCrawler import RedditCrawler
-from src.util.utils import to_datetime_aware
 from src.settings import settings
 from src.core.logger import Logger
+from src.util.utils import normalize_url
 
 logger = Logger("Control")
 
-# TODO: Subreddit posts scraping is not scraping from more recursively
 # TODO: using the filterFields in the input_schema.json filter results before pushing
+# TODO: add cookies loid and reddit_session in the actor_inputs dict
+# TODO: merge videos_urls and images_urls into media and filter any None
+# TODO: Replies of comments are empty debug and fix
 
 
 async def push_post(actor, post):
@@ -24,14 +26,25 @@ async def get_actor_inputs(actor) -> dict[str, Any]:
 
     keywords: list[str] = actor_input.get('keywords', [])
     links: list[dict[str, str]] = actor_input.get('links', [])
+    proxy: Optional[dict] = actor_input.get('proxyConfiguration', {"useApifyProxy": False})
     max_amount: int = actor_input.get('maxPosts', 1)
-    stop_date: dt.datetime = to_datetime_aware(actor_input.get('stopDate', settings["TODAY"]))
+    stop_date: dt.datetime = actor_input.get('stopDate', settings["TODAY"])
     filter_fields: list[str] = actor_input.get('filterFields', [])
     deep_crawl: bool = actor_input.get('deepCrawl', False)
+    loid_cookie: str = ''
+    reddit_session: str = ''
+
+    links: list[str] = [normalize_url(link['url']) for link in links]
+
+    if proxy == {"useApifyProxy": False}:
+        proxy = None
 
     return {
+        "loid_cookie": loid_cookie,
+        "reddit_session": reddit_session,
         "keywords": keywords,
         "links": links,
+        "proxy_cfg": proxy,
         "max_amount": max_amount,
         "stop_date": stop_date,
         "filter_fields": filter_fields,
@@ -45,9 +58,16 @@ async def main() -> None:
 
         settings["MAX_AMOUNT_LIMIT"] = actor_inputs["max_amount"]
         settings["CRAWL_COMMENTS_SECTION"] = actor_inputs["deep_crawl"]
+        settings["REDDIT_LOID_COOKIE"] = actor_inputs["loid_cookie"]
+        settings["REDDIT_SESSION_COOKIE"] = actor_inputs["reddit_session"]
+
         if not actor_inputs["links"]:
             actor.log.info('bad input - No start URLs specified in actor input, exiting...')
             await actor.exit()
+
+        if actor_inputs["proxy_cfg"]:
+            proxy_cfg = await Actor.create_proxy_configuration(actor_proxy_input=actor_inputs["proxy_cfg"])
+            settings["PROXIES"] = [await proxy_cfg.new_url()]
 
         actor.log.info(
             f"""\n

@@ -7,8 +7,9 @@
                 "fields": [
                     "thumbnail",
                     "post_id",
+                    "crosspost_parent",
                     "publisher_id",
-                    "subbreddit_id",
+                    "subreddit_id",
                     "type",
                     "subreddit_type",
                     "title",
@@ -25,6 +26,9 @@
                     "total_crossposts",
                     "total_comments",
                     "total_subreddit_subs",
+                    "is_hidden",
+                    "is_crosspost",
+                    "is_pinned",
                     "is_author_premium",
                     "is_edited",
                     "is_gild",
@@ -52,6 +56,11 @@
 
                     "Post id": {
                         "label": "Post id",
+                        "format": "text"
+                    },
+
+                    "Crosspost Parent": {
+                        "label": "Crosspost Parent",
                         "format": "text"
                     },
 
@@ -143,6 +152,21 @@
                     "Total Subreddit Subscriptions": {
                         "label": "Total Subreddit Subscriptions",
                         "format": "integer"
+                    },
+
+                    "is hidden": {
+                        "label": "is author premium",
+                        "format":"boolean"
+                    },
+
+                    "is crosspost": {
+                        "label": "is author premium",
+                        "format":"boolean"
+                    },
+
+                    "is pinned": {
+                        "label": "is author premium",
+                        "format":"boolean"
                     },
 
                     "is author premium": {

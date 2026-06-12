@@ -4,38 +4,57 @@ from requests import Response
 from browserforge.fingerprints import FingerprintGenerator
 from curl_cffi.requests import AsyncSession
 
-from core.logger import Logger
+from src.core.logger import Logger
 from src.settings import settings
 from src.util.decorators import retry
 
 
 class Session(AsyncSession):
+    """
+     using this Session class usually cookies are not passed to the request headers
+     you have to update your object Session().headers to use {"Cookie": cookie1=abcd;cookie2=abcd}
+     instead of using Session.cookies
+
+     and this is a bug that needs to be fixed later
+    """
     logger = Logger("Session")
 
     def __init__(self, proxy: list[str] = settings["PROXIES"]) -> None:
         super(Session, self).__init__()
         self.headers.update(self.generate_fingerprint())
 
+        self.get('https://www.google.com/')  # we add some cookies so the session is not empty, and we check the network
         if isinstance(proxy, list):
             if isinstance(proxy, list): proxy = random.choice(proxy)
-            self.proxies = {"https": proxy, "http": proxy}  # then we add the proxies after so we check proxies
+            self.proxies = {"https": proxy, "http": proxy}  # then we add the proxies after so we check them
             self.logger.info(f'proxy: {proxy} is implemented')
 
         self.logger.info('Session initialized successfully')
 
     def generate_fingerprint(self, user_agent: str = None) -> dict:
+        """ generates headers and user-agent for the session """
         fingerprint = FingerprintGenerator()
         headers = fingerprint.generate(user_agent=user_agent or self.headers.get('User-Agent')).headers
         return headers
 
     @retry
     async def request(self, method, url, *args, **kwargs) -> Response:
-        """accept http method and forward to parent"""
+        """ accept http method and forward to parent """
         kwargs.update({'timeout': 120, 'impersonate': "chrome99", 'verify': True})
-        response: Response = await super(Session, self).request(method=method, url=url, *args, **kwargs)
+
+        response: Response = await super(Session, self).request(
+            method=method,
+            url=url,
+            headers=self.headers,
+            cookies=self.cookies,
+            *args,
+            **kwargs,
+        )
+
         if not response:
             self.logger.error(f'{method} request failed')
             return Response()
+
         return response
 
     async def get(self, *args, **kwargs) -> Response:

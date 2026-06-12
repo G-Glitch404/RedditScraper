@@ -4,6 +4,14 @@
     "type": "object",
     "schemaVersion": 1,
     "properties": {
+        "cookies": {
+          "title": "Account Cookies (Optional) - Scrape using a specific account",
+          "description": "",
+          "type": "text",
+          "editor": "text",
+          "default": ""
+        },
+
         "links": {
           "title": "Start links - Scrape a whole subreddit or a specific post",
           "description": "you can scrape from a specific subreddit or post/s -\n\nformat examples\n- single url: https://www.investing.com/news/latest-news/3\n- multiple sources: add each source as a separate item in the list\n\nnote: leave empty to start with no urls and populate the request list dynamically",
@@ -17,9 +25,7 @@
             "description": "add or remove keywords to search for\n\nformat examples\n- single keyword: bitcoin\n- phrase: \"climate change\"\n- multiple entries: add each keyword/phrase as its own list item\n\nnote: leaving this list empty means no keyword filtering will be applied, keywords filtring is very slow and CaseSensitive.",
             "type": "string",
             "editor": "select",
-            "enumSuggestedValues": [
-                ""
-            ],
+            "enumSuggestedValues": [""],
             "default": ""
         },
 
@@ -46,7 +52,7 @@
             "description": "drop posts that are missing any of the selected fields\n\nusage examples\n- leave empty: no field-based filtering, return articles even if fields are missing\n- single field: [\"authors\"] will drop articles with empty or missing authors\n- multiple fields: [\"title\",\"body\"] will drop articles missing either title or body\n\nbehavior\n- selectable values mirror article fields; choose nothing, one, or many\n- if you need to require at least one of several fields instead of all, handle in post-processing",
             "type": "array",
             "minItems": 0,
-            "maxItems": 13,
+            "maxItems": 38,
             "nullable": true,
             "editor": "select",
             "items": {
@@ -54,8 +60,9 @@
                 "enum": [
                     "thumbnail",
                     "post_id",
+                    "crosspost_parent",
                     "publisher_id",
-                    "subbreddit_id",
+                    "subreddit_id",
                     "type",
                     "subreddit_type",
                     "title",
@@ -72,6 +79,9 @@
                     "total_crossposts",
                     "total_comments",
                     "total_subreddit_subs",
+                    "is_hidden",
+                    "is_crosspost",
+                    "is_pinned",
                     "is_author_premium",
                     "is_edited",
                     "is_gild",
@@ -91,6 +101,7 @@
                 "enumTitles":[
                     "Thumbnail",
                     "Post id",
+                    "Crosspost Parent",
                     "Publisher id",
                     "Subbreddit id",
                     "Type",
@@ -109,6 +120,9 @@
                     "Total Crossposts",
                     "Total Comments",
                     "Total Subreddit Subs",
+                    "is_hidden",
+                    "is_crosspost",
+                    "is_pinned",
                     "is author premium",
                     "is edited",
                     "is gild",
@@ -137,12 +151,24 @@
             "editor": "number",
             "prefill": 1000,
             "maximum": 30000,
-            "minimum": 10
-        },
+            "minimum": 10,
+      },
 
-        "required": [
-            "links",
-            "maxPosts"
-        ]
-    }
+        "proxyConfiguration": {
+          "title": "Proxy configurations",
+          "type": "object",
+          "description": "specify which proxies the scraper should use (optional)\n\nexamples\n- use apify proxy: set useApifyProxy to true\n- custom proxy: provide a proxy url or configure your proxy pool in the platform\n\nrecommended usage\n- enable proxies if you see empty results or frequent block responses\n- keep useApifyProxy=false for local testing and enable in production runs",
+          "sectionCaption": "Proxy and HTTP configurations",
+          "sectionDescription": "if you face problems with like no results returned then try to set this to use some proxies maybe this can solve the issue",
+          "prefill": {"useApifyProxy": false},
+          "default": {"useApifyProxy": false},
+          "editor": "proxy",
+          "nullable": true
+        }
+    },
+
+    "required": [
+        "links",
+        "maxPosts"
+    ]
 }

@@ -14,9 +14,10 @@ class Database:
     logger = Logger("Database")
 
     def __init__(self, dsn: str = settings["DATABASE"], min_size: int = 1, max_size: int = 2096) -> None:
-        self.dsn = dsn
-        self.min_size = min_size
-        self.max_size = max_size
+        self.enabled: bool = settings["DATABASE_ENABLED"]
+        self.dsn: str = dsn
+        self.min_size: int = min_size
+        self.max_size: int = max_size
         self.pool: Optional[ConnectionPool] = None
 
         atexit.register(self.close)
@@ -26,21 +27,32 @@ class Database:
         if self.pool:
             try: self.pool.close()
             except Exception as e:
-                self.logger.error(f"an error happened while closing the db pool  error {e}")
+                self.logger.error(f"an error happened while closing the db pool   error: {e}")
 
-    def _ensure_pool(self) -> None:
+    def _ensure_pool(self) -> bool:
         """ ensure pool exists (reconnect) """
+        if not self.enabled: return False
         if not self.pool:
-            self.pool: Optional[ConnectionPool] = ConnectionPool(
-                settings["DATABASE"],
-                min_size=self.min_size,
-                max_size=self.max_size,
-                num_workers=settings["CPU_CORES"],
-            )
+            try:
+                self.pool: Optional[ConnectionPool] = ConnectionPool(
+                    settings["DATABASE"],
+                    min_size=self.min_size,
+                    max_size=self.max_size,
+                    num_workers=settings["CPU_CORES"],
+                )
+            except Exception as e:
+                self.pool = None
+                self.enabled = False
+
+                self.logger.warning(f"database is disabled no posts will be saved   potential error: {e}")
+                return False
+
+        return True
 
     def fetch(self, sql_query: str, params: Optional[Sequence[Any]] = None) -> Generator[Any, None, None]:
         """ fetch all/one row/s for a query """
-        self._ensure_pool()
+        if not self._ensure_pool(): return
+
         with self.pool.connection() as conn:
             with conn.cursor(row_factory=rows.dict_row) as cur:
                 cur.execute(sql_query, params)
@@ -48,7 +60,8 @@ class Database:
 
     def insert(self, sql_query: sql.Composed, values: Sequence[Any]) -> bool:
         """ insert a record and return false on unique violation """
-        self._ensure_pool()
+        if not self._ensure_pool(): return False
+
         with self.pool.connection() as conn:
             with conn.cursor() as cur:
                 try:
@@ -65,7 +78,8 @@ class Database:
 
     def execute(self, sql_query: str, params: Optional[Sequence[Any]] = None) -> bool:
         """ execute an arbitrary sql statement """
-        self._ensure_pool()
+        if not self._ensure_pool(): return False
+
         with self.pool.connection() as conn:
             with conn.cursor() as cur:
                 try:
@@ -80,7 +94,8 @@ class Database:
 
     def delete_record(self, record_id: int) -> bool:
         """ delete a record by id """
-        self._ensure_pool()
+        if not self._ensure_pool(): return False
+
         with self.pool.connection() as conn:
             with conn.cursor() as cur:
                 try:

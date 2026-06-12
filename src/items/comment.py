@@ -14,11 +14,16 @@ class Comment(Item):
     subreddit_id: str = None
     subreddit: str = None
     score: int = None
+    upvotes: int = None
+    downvotes: int = None
+    upvotes_ratio: int = None
     type: str = None
     body: str = None
     link: str = None
     unrepliable_reason: str = None
     can_send_replies: bool = None
+    is_post_comment: bool = None
+    is_reply: bool = None
     is_score_hidden: bool = None
     is_over_18: bool = None
     is_edited: bool = None

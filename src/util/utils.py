@@ -1,12 +1,24 @@
 import os
 import re
 import datetime as dt
-from typing import Callable, Any
+from typing import Callable, Any, Union, Optional
 
 DEFAULT_DATE_FORMAT: str = "%Y-%m-%d %H:%M:%S"
 
+normalize_url: Callable[[str], str] = lambda reddit_url: (reddit_url.strip().split("?", 1)[0].replace('/.json', '') + '/.json').replace('//', '/')
+pagination: Callable[[dict], dict[str, str]] = lambda payload: {"after": extract(payload, "data", "after")}
 today: Callable[[], dt.date] = lambda: dt.datetime.now(tz=dt.timezone.utc).date()
 clean_text: Callable[[Any], str] = lambda text: re.sub('\n+|\\s+|\\t+|\\r+|\\r\\n+|\\r\\n', ' ', ''.join(text)).strip()
+
+
+def extract(item: Any, *index: Union[str, int], default: Optional[Any] = None) -> Any:
+    """ recursively extract data from a nested list based on the given indices """
+    try:
+        match len(index):
+            case 0: return item
+            case 1: return item[index[0]]
+            case _: return extract(item[index[0]], *index[1:])
+    except (IndexError, TypeError, KeyError): return default
 
 
 def to_datetime_aware(dt_obj: dt.datetime | dt.date | str, formate: str = DEFAULT_DATE_FORMAT) -> dt.datetime:
