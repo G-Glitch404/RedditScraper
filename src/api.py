@@ -1,12 +1,12 @@
 import asyncio
-from typing import Union
+from typing import Union, Any, AsyncGenerator
 
 from flask import Flask, jsonify, request
 from urllib.parse import urlparse, urlunparse
 
 from src.RedditCrawler import RedditCrawler
 from src.core.logger import Logger
-
+from src.items.post import Post
 
 logger = Logger("CrawlerAPI")
 app = Flask(__name__)
@@ -64,6 +64,13 @@ def health():
 @app.get("/api/v1/reddit/crawl")
 def crawl_reddit():
     """ crawl a reddit url and return the crawler result """
+    async def _collect_async_generator(gen: AsyncGenerator) -> list[Any]:
+        """ run and collect an AsyncGenerator object """
+        items = []
+        async for item in gen:
+            items.append(item)
+        return items
+
     url: str = request.args.get("url", "").strip()
 
     if not url:
@@ -79,12 +86,13 @@ def crawl_reddit():
             "error": "url is refused bad or malformed input",
         }), 400
 
-    result = crawler.crawl(normalized_url)  # TODO: result is AsyncGenerator
+    result: AsyncGenerator[Post, None] = crawler.crawl(normalized_url)
+    result: list[Post] = asyncio.run(_collect_async_generator(result))
     if not result:
         return jsonify(
             {
                 "success": False,
-                "error": "crawler is not implemented yet",
+                "error": "crawler is did not provide any results.",
                 "url": normalized_url,
             }
         ), 501

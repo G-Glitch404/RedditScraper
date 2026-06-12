@@ -7,7 +7,7 @@ from src.RedditCrawler import RedditCrawler
 async def test_scrape_post() -> None:
     link: str = ""
     total_comments = 0
-    settings["CRAWL_COMMENTS_SECTION"] = True
+    settings["DEEP_CRAWL_COMMENTS_SECTION"] = True
     start = time.time()
 
     crawler = RedditCrawler()

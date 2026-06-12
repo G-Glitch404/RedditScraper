@@ -1,7 +1,7 @@
 import datetime as dt
+from typing import Any, Optional
 
 from apify import Actor
-from typing import Any, Optional
 
 from src.RedditCrawler import RedditCrawler
 from src.settings import settings
@@ -10,38 +10,57 @@ from src.util.utils import normalize_url
 
 logger = Logger("Control")
 
-# TODO: using the filterFields in the input_schema.json filter results before pushing
-# TODO: add cookies loid and reddit_session in the actor_inputs dict
-# TODO: merge videos_urls and images_urls into media and filter any None
-# TODO: Replies of comments are empty debug and fix
+# TODO: Replies of comments are sometimes empty debug and fix
+# TODO: merge videos_urls and images_urls into media and filter any None,
+#  make sure videos_urls and images_urls are valid and actual available media
 
 
 async def push_post(actor, post):
-    """ push posts to apify output tables """
+    """ push posts to apify output tables applying all the actor's inputs filters """
     pass
 
 
 async def get_actor_inputs(actor) -> dict[str, Any]:
+    """ extract and normalize apify actor inputs """
+    def _parse_stop_date(value: Optional[str]) -> Optional[dt.datetime]:
+        """ parse the actor stop date into utc datetime """
+        if not value: return None
+        parsed = dt.datetime.fromisoformat(value)
+        if parsed.tzinfo is None:
+            parsed = parsed.replace(tzinfo=dt.timezone.utc)
+        return parsed.astimezone(dt.timezone.utc)
+
     actor_input: dict[str, Any] = await actor.get_input() or {}
 
-    keywords: list[str] = actor_input.get('keywords', [])
-    links: list[dict[str, str]] = actor_input.get('links', [])
-    proxy: Optional[dict] = actor_input.get('proxyConfiguration', {"useApifyProxy": False})
-    max_amount: int = actor_input.get('maxPosts', 1)
-    stop_date: dt.datetime = actor_input.get('stopDate', settings["TODAY"])
-    filter_fields: list[str] = actor_input.get('filterFields', [])
-    deep_crawl: bool = actor_input.get('deepCrawl', False)
-    loid_cookie: str = ''
-    reddit_session: str = ''
+    keywords: list[str] = actor_input.get("keywords", [])
+    raw_links: list[dict[str, str]] = actor_input.get("links", []) or []
+    proxy: Optional[dict[str, Any]] = actor_input.get("proxyConfiguration", {"useApifyProxy": False})
+    max_amount: int = int(actor_input.get("maxPosts", 10) or 10)
+    stop_date_raw: Optional[str] = actor_input.get("stopDate")
+    filter_fields: list[str] = actor_input.get("filterFields", [])
+    deep_crawl: bool = actor_input.get("deepCrawl", False)
+    include_comments: bool = actor_input.get("includeComments", True)
+    include_crossposts: bool = actor_input.get("includeCrossposts", True)
+    cookies: dict[str, Any] = actor_input.get("cookies", {})
 
-    links: list[str] = [normalize_url(link['url']) for link in links]
-
+    links: list[str] = [url for link in raw_links if (url := normalize_url(link.get("url")))]
     if proxy == {"useApifyProxy": False}:
+        logger.debug("Cookies are disabled, None will be used.")
         proxy = None
+
+    stop_date: dt.datetime = _parse_stop_date(stop_date_raw)
+
+    loid_cookie: Optional[str] = cookies.get("loid")
+    reddit_session: Optional[str] = cookies.get("reddit_session")
+    if all([loid_cookie, reddit_session]):
+        settings["REDDIT_LOID_COOKIE"] = loid_cookie
+        settings["REDDIT_SESSION_COOKIE"] = loid_cookie
+    else: logger.warning("missing cookies detected, defaulting to the bot's default cookies (could case problems while crawling)")
 
     return {
         "loid_cookie": loid_cookie,
         "reddit_session": reddit_session,
+        "cookies": cookies,
         "keywords": keywords,
         "links": links,
         "proxy_cfg": proxy,
@@ -49,17 +68,25 @@ async def get_actor_inputs(actor) -> dict[str, Any]:
         "stop_date": stop_date,
         "filter_fields": filter_fields,
         "deep_crawl": deep_crawl,
+        "include_comments": include_comments,
+        "include_crossposts": include_crossposts,
     }
 
 
 async def main() -> None:
     async with Actor as actor:
+        actor.init()
+        actor.log.debug("Actor is initialized.")
+
         actor_inputs: dict[str, Any] = await get_actor_inputs(actor)
 
         settings["MAX_AMOUNT_LIMIT"] = actor_inputs["max_amount"]
-        settings["CRAWL_COMMENTS_SECTION"] = actor_inputs["deep_crawl"]
+        settings["STOP_DATE"] = actor_inputs["stop_date"]
+        settings["DEEP_CRAWL_COMMENTS_SECTION"] = actor_inputs["deep_crawl"]
         settings["REDDIT_LOID_COOKIE"] = actor_inputs["loid_cookie"]
         settings["REDDIT_SESSION_COOKIE"] = actor_inputs["reddit_session"]
+        settings["INCLUDE_COMMENTS"] = actor_inputs["include_comments"]
+        settings["INCLUDE_CROSSPOSTS"] = actor_inputs["include_crossposts"]
 
         if not actor_inputs["links"]:
             actor.log.info('bad input - No start URLs specified in actor input, exiting...')
@@ -73,20 +100,30 @@ async def main() -> None:
             f"""\n
             Actor initialized on  {settings['TODAY']}  -  with Inputs:\n
             ---------------------------------------\n            
-            keywords:  {actor_inputs['keywords']}
             links:  {actor_inputs['links']}
             max_amount:  {actor_inputs['max_amount']}
             stop_date:  {actor_inputs['stop_date']}
+            keywords:  {actor_inputs['keywords']}
             filter_fields:  {actor_inputs['filter_fields']}
             deep_crawl:  {actor_inputs['deep_crawl']}
+            include_comments:  {actor_inputs['include_comments']}
+            include_crossposts:  {actor_inputs['include_crossposts']}
             \n"""
         )
 
         crawler = RedditCrawler()
         actor.log.info("Crawling started - checking is done - charging user for the run")
-        # TODO: Charge user here
+        await actor.charge(event_name="actor-run")
+
+        if settings["DEEP_CRAWL_COMMENTS_SECTION"]:
+            valid_links: list[str] = [link for link in actor_inputs["links"] if '/comments' in link]
+            await actor.charge(event_name="deep-crawl", count=len(valid_links))
 
         for url in actor_inputs["links"]:
-            async for post in crawler.crawl(url):
+            async for post in crawler.crawl(
+                reddit_url=url,
+                max_amount=settings["MAX_AMOUNT_LIMIT"],
+                stop_date=settings["STOP_DATE"]
+            ):
                 await push_post(actor, post)
-                # TODO: Charge user here
+                actor.charge(event_name='pushed-result')

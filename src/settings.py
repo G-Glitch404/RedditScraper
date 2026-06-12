@@ -17,10 +17,12 @@ settings = {
     "CPU_CORES": cpu_count(),
 
     "MAX_AMOUNT_LIMIT": 1_000,
-    "CRAWL_COMMENTS_SECTION": False,
-
+    "STOP_DATE": None,
     "REDDIT_LOID_COOKIE": os.environ["REDDIT_LOID_COOKIE"],
     "REDDIT_SESSION_COOKIE": os.environ["REDDIT_SESSION_COOKIE"],
+    "DEEP_CRAWL_COMMENTS_SECTION": False,
+    "INCLUDE_COMMENTS": True,
+    "INCLUDE_CROSSPOSTS": True,
 
     "TODAY": today(),
 

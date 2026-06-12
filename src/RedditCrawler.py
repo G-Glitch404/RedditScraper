@@ -74,7 +74,7 @@ class RedditCrawler:
         post_obj["type"] = extract(payload, "post_hint", default='').split(":")[-1] or None
         post_obj["published_at"] = dt.datetime.fromtimestamp(extract(payload, "created_utc"), tz=dt.timezone.utc)
         post_obj["videos_urls"] = [extract(payload, "url_overridden_by_dest"), extract(payload, "preview", "reddit_video_preview", "fallback_url")]
-        post_obj["images_urls"] = []  # TODO: work this out
+        post_obj["images_urls"] = []
         post_obj["is_crosspostable"] = extract(payload, "is_crosspostable")
         post_obj["total_crossposts"] = extract(payload, "num_crossposts")
         post_obj["is_crosspost"] = True if post_obj["crosspost_parent"] else False
@@ -192,7 +192,8 @@ class RedditCrawler:
     async def crawl(
             self,
             reddit_url: str,
-            max_amount: int = settings["MAX_AMOUNT_LIMIT"]
+            max_amount: int = settings["MAX_AMOUNT_LIMIT"],
+            stop_date: Optional[dt.datetime] = None,
     ) -> AsyncGenerator[Post, None]:
         """ main function to initiate the full crawl pipeline """
         url_path: list[str] = urllib.parse.urlparse(reddit_url).path.strip("/").split("/")
@@ -206,8 +207,11 @@ class RedditCrawler:
             self.logger.debug(f"detected a post url, initiated scraping a singler post")
 
             post_payload: dict[str, Any] = extract(reddit_payload, 0, "data", "children", 0, "data")
-            comments_payload: list[dict[str, Any]] = extract(reddit_payload, 1, "data", "children")
-            post: Post = await self.parse(post_payload, comments_payload)
+            if settings["INCLUDE_COMMENTS"]:
+                comments_payload: list[dict[str, Any]] = extract(reddit_payload, 1, "data", "children")
+                post: Post = await self.parse(post_payload, comments_payload)
+            else:
+                post: Post = await self.parse(post_payload)
 
             end_time: float = time.time()
             self.logger.info(f"scraped post successfully, Took: {round((end_time-start_time)/60, 2)} mins")
@@ -239,6 +243,8 @@ class RedditCrawler:
 
                 self.logger.debug(f"scraped {len(extracted_posts)} posts yielding results now...")
                 for extracted_post in extracted_posts:
+                    if isinstance(stop_date, dt.datetime) and extracted_post["published_at"] > stop_date: continue
+                    if not settings["INCLUDE_CROSSPOSTS"] and extracted_post["is_crosspost"]: continue
                     yield extracted_post
                 extracted_posts_num += len(extracted_posts)
                 last_pagination: dict[str, str] = next_pagination
