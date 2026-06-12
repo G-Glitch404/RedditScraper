@@ -55,7 +55,7 @@ async def get_actor_inputs(actor) -> dict[str, Any]:
     if all([loid_cookie, reddit_session]):
         settings["REDDIT_LOID_COOKIE"] = loid_cookie
         settings["REDDIT_SESSION_COOKIE"] = loid_cookie
-    else: logger.warning("missing cookies detected, defaulting to the bot's default cookies (could case problems while crawling)")
+    else: logger.warning("missing cookies detected, defaulting to the bot's default cookies (could case problems while crawling).")
 
     return {
         "loid_cookie": loid_cookie,
@@ -76,7 +76,7 @@ async def get_actor_inputs(actor) -> dict[str, Any]:
 async def main() -> None:
     async with Actor as actor:
         actor.init()
-        actor.log.debug("Actor is initialized.")
+        actor.log.debug("Actor is initialized")
 
         actor_inputs: dict[str, Any] = await get_actor_inputs(actor)
 
@@ -99,7 +99,7 @@ async def main() -> None:
         actor.log.info(
             f"""\n
             Actor initialized on  {settings['TODAY']}  -  with Inputs:\n
-            ---------------------------------------\n            
+            ------------------------------------------\n            
             links:  {actor_inputs['links']}
             max_amount:  {actor_inputs['max_amount']}
             stop_date:  {actor_inputs['stop_date']}
