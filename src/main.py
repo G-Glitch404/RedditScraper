@@ -51,7 +51,7 @@ async def get_actor_inputs(actor) -> dict[str, Any]:
     deep_crawl: bool = actor_input.get("deepCrawl", False)
     include_comments: bool = actor_input.get("includeComments", True)
     include_crossposts: bool = actor_input.get("includeCrossposts", True)
-    cookies: list[dict[str, Any]] = actor_input.get("cookies", {})
+    cookies: dict[str, Any] = actor_input.get("cookies", {}) or {}
 
     links: list[str] = [url for link in raw_links if (url := normalize_url(link.get("url")))]
     if proxy == {"useApifyProxy": False}:
@@ -62,10 +62,10 @@ async def get_actor_inputs(actor) -> dict[str, Any]:
 
     loid_cookie: Optional[str] = None
     reddit_session: Optional[str] = None
-    for cookie in cookies:
-        name = cookie.get("name", '')
-        if name == "loid": loid_cookie: str = cookie.get("value")
-        elif name == "reddit_session": reddit_session: str = cookie.get("value")
+    for cookie_k, cookie_v in cookies.items():
+        cookie_k = str(cookie_k).lower()
+        if cookie_k == "loid": loid_cookie: str = cookie_v
+        elif cookie_k == "reddit_session": reddit_session: str = cookie_v
 
     if all([loid_cookie, reddit_session]):
         settings["REDDIT_LOID_COOKIE"] = loid_cookie
@@ -99,8 +99,6 @@ async def main() -> None:
         settings["MAX_AMOUNT_LIMIT"] = actor_inputs["max_amount"]
         settings["STOP_DATE"] = actor_inputs["stop_date"]
         settings["DEEP_CRAWL_COMMENTS_SECTION"] = actor_inputs["deep_crawl"]
-        settings["REDDIT_LOID_COOKIE"] = actor_inputs["loid_cookie"]
-        settings["REDDIT_SESSION_COOKIE"] = actor_inputs["reddit_session"]
         settings["INCLUDE_COMMENTS"] = actor_inputs["include_comments"]
         settings["INCLUDE_CROSSPOSTS"] = actor_inputs["include_crossposts"]
 
@@ -134,6 +132,7 @@ async def main() -> None:
         if settings["DEEP_CRAWL_COMMENTS_SECTION"]:
             valid_links: list[str] = [link for link in actor_inputs["links"] if '/comments' in link]
             await actor.charge(event_name="deep-crawl", count=len(valid_links))
+            logger.info(f'charged user for deep crawl of {len(valid_links)} posts')
 
         for url in actor_inputs["links"]:
             async for post in crawler.crawl(

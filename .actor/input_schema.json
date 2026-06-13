@@ -9,7 +9,9 @@
       "description": "Add one or more Reddit URLs to crawl.\n - You can use subreddit URLs \n - Users URLs \n - Custom feeds URLs \n - posts URLs.",
       "type": "array",
       "editor": "requestListSources",
-      "default": []
+      "default": [],
+      "minItems": 1,
+      "maxItems": 25
     },
 
     "maxPosts": {
