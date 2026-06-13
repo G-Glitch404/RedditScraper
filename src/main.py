@@ -55,7 +55,7 @@ async def get_actor_inputs(actor) -> dict[str, Any]:
 
     links: list[str] = [url for link in raw_links if (url := normalize_url(link.get("url")))]
     if proxy == {"useApifyProxy": False}:
-        logger.debug("Cookies are disabled, None will be used.")
+        logger.debug("Proxies are disabled, None will be used.")
         proxy = None
 
     stop_date: dt.datetime = _parse_stop_date(stop_date_raw)
@@ -91,7 +91,7 @@ async def get_actor_inputs(actor) -> dict[str, Any]:
 
 async def main() -> None:
     async with Actor as actor:
-        actor.init()
+        await actor.init()
         actor.log.debug("Actor is initialized")
 
         actor_inputs: dict[str, Any] = await get_actor_inputs(actor)
