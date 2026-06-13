@@ -62,6 +62,7 @@ class RedditCrawler:
         post_obj["crosspost_parent"] = extract(payload, "crosspost_parent")
         post_obj["post_id"] = extract(payload, "name")
         post_obj["title"] = extract(payload, "title")
+        post_obj["body"] = extract(payload, "selftext")
         post_obj["link"] = settings['REDDIT_ENDPOINT'] + extract(payload, "permalink")
         post_obj["total_awards"] = extract(payload, "total_awards_received")
         post_obj["is_score_hidden"] = extract(payload, "hide_score")
