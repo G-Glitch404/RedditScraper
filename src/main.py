@@ -91,7 +91,6 @@ async def get_actor_inputs(actor) -> dict[str, Any]:
 
 async def main() -> None:
     async with Actor as actor:
-        await actor.init()
         actor.log.debug("Actor is initialized")
 
         actor_inputs: dict[str, Any] = await get_actor_inputs(actor)
