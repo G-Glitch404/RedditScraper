@@ -17,7 +17,7 @@ logger = Logger("Control")
 
 async def push_post(actor, post):
     """ push posts to apify output tables applying all the actor's inputs filters """
-    pass
+    actor.push_items(post)
 
 
 async def get_actor_inputs(actor) -> dict[str, Any]:
@@ -55,7 +55,8 @@ async def get_actor_inputs(actor) -> dict[str, Any]:
     if all([loid_cookie, reddit_session]):
         settings["REDDIT_LOID_COOKIE"] = loid_cookie
         settings["REDDIT_SESSION_COOKIE"] = loid_cookie
-    else: logger.warning("missing cookies detected, defaulting to the bot's default cookies (could case problems while crawling).")
+    else:
+        logger.warning("missing cookies detected, defaulting to bot's cookies (could case problems while crawling).")
 
     return {
         "loid_cookie": loid_cookie,

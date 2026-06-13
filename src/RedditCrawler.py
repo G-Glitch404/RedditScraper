@@ -243,7 +243,7 @@ class RedditCrawler:
 
                 self.logger.debug(f"scraped {len(extracted_posts)} posts yielding results now...")
                 for extracted_post in extracted_posts:
-                    if isinstance(stop_date, dt.datetime) and extracted_post["published_at"] > stop_date: continue
+                    if isinstance(stop_date, dt.datetime) and extracted_post["published_at"] < stop_date: continue
                     if not settings["INCLUDE_CROSSPOSTS"] and extracted_post["is_crosspost"]: continue
                     yield extracted_post
                 extracted_posts_num += len(extracted_posts)

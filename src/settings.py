@@ -14,6 +14,9 @@ settings = {
     "PROXIES": None,
     "VERBOSE": True,
     "LOGGING_LEVEL": logging.DEBUG,
+
+    "API_HOST": "0.0.0.0",
+    "API_PORT": 9092,
     "CPU_CORES": cpu_count(),
 
     "MAX_AMOUNT_LIMIT": 1_000,

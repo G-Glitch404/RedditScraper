@@ -1,10 +1,13 @@
 import asyncio
-from typing import Union, Any, AsyncGenerator
+import datetime as dt
 
-from flask import Flask, jsonify, request
+from typing import Union, Any, AsyncGenerator
 from urllib.parse import urlparse, urlunparse
 
+from flask import Flask, jsonify, request
+
 from src.RedditCrawler import RedditCrawler
+from src.settings import settings
 from src.core.logger import Logger
 from src.items.post import Post
 
@@ -27,16 +30,14 @@ def normalize_reddit_json_url(url: str) -> Union[str, bool]:
     """ ensures the input links are reddit.com links """
     parsed = urlparse(url.strip())
 
-    netloc = parsed.netloc.lower()
+    netloc: str = parsed.netloc.lower()
     if not parsed.scheme or not parsed.netloc or netloc not in ALLOWED_NETLOCS:
-        logger.error(f'malformed or bad input  -  url: "{url}"')
+        logger.error(f'malformed or bad input  -  url:  "{url}"')
         return False
 
     path = parsed.path or "/"
-    if path.endswith(".json"):
-        normalized_path = path
-    else:
-        normalized_path = path.rstrip("/") + "/.json"
+    if path.endswith(".json"): normalized_path = path
+    else: normalized_path = path.rstrip("/") + "/.json"
 
     return urlunparse(
         (
@@ -71,13 +72,49 @@ def crawl_reddit():
             items.append(item)
         return items
 
+    loid_cookie: str = request.args.get("loid", "").strip()
+    reddit_session: str = request.args.get("reddit_session", "").strip()
     url: str = request.args.get("url", "").strip()
+    stop_date: str = request.args.get("stop_date", "").strip()
+    max_amount: str = request.args.get("max_amount", "1000").strip().replace(",", '')
+    include_comments: bool = request.args.get("include_comments", "true").strip().lower() in {"true", "1", "yes", "on"}
+    include_crossposts: bool = request.args.get("include_crossposts", "false").strip().lower() in {"true", "1", "yes", "on"}
 
-    if not url:
+    if all([loid_cookie, reddit_session]):
+        settings["REDDIT_LOID_COOKIE"] = loid_cookie
+        settings["REDDIT_SESSION_COOKIE"] = loid_cookie
+
+        logger.debug(f"set and using custom user cookies")
+    else:
+        logger.warning("missing cookies detected, defaulting to bot's cookies (could case problems while crawling).")
+
+    if url.count("reddit.com/") > 1:
         return jsonify({
             "success": False,
-            "error": "missing url parameter",
+            "error": "only one reddit link is allowed at a time",
         }), 400
+    if not url or len(url) <= 0:
+        return jsonify({
+            "success": False,
+            "error": "missing url parameter or no links provided",
+        }), 400
+
+    try: max_amount: int = int(max_amount)
+    except ValueError:
+        logger.error(f"bad value provided for max_amount:  {request.args.get('max_amount')}")
+        return jsonify({
+            "success": False,
+            "error": "max_amount must be an integer (a number from 1 to 1000)",
+        }), 400
+
+    if stop_date:
+        try: stop_date: dt.datetime = dt.datetime.strptime(stop_date, "%Y-%m-%d %H:%M:%S")
+        except ValueError:
+            logger.error(f"bad value provided for stop_date:  {stop_date}")
+            return jsonify({
+                "success": False,
+                "error": "stop_date must be a valid date in YYYY-MM-DD HH:MM:SS format",
+            }), 400
 
     normalized_url: Union[str, bool] = normalize_reddit_json_url(url)
     if not normalized_url:
@@ -86,13 +123,18 @@ def crawl_reddit():
             "error": "url is refused bad or malformed input",
         }), 400
 
-    result: AsyncGenerator[Post, None] = crawler.crawl(normalized_url)
+    settings["INCLUDE_COMMENTS"] = include_comments
+    settings["INCLUDE_CROSSPOSTS"] = include_crossposts
+
+    logger.debug(f"crawling link:  {url}  with max_amount:  {max_amount}")
+
+    result: AsyncGenerator[Post, None] = crawler.crawl(normalized_url, max_amount, stop_date or None)
     result: list[Post] = asyncio.run(_collect_async_generator(result))
     if not result:
         return jsonify(
             {
                 "success": False,
-                "error": "crawler is did not provide any results.",
+                "error": "error - something is wrong with the crawler, it did not provide any results.",
                 "url": normalized_url,
             }
         ), 501
@@ -132,4 +174,9 @@ def internal_error(_):
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8000, debug=False)
+    app.run(
+        host=settings["API_HOST"],
+        port=settings["API_PORT"],
+        debug=False,
+        load_dotenv=True,
+    )
