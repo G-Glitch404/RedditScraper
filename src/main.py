@@ -1,7 +1,7 @@
 import datetime as dt
-from typing import Any, Optional
 
 from apify import Actor
+from typing import Any, Optional
 
 from src.RedditCrawler import RedditCrawler
 from src.settings import settings
@@ -41,7 +41,7 @@ async def get_actor_inputs(actor) -> dict[str, Any]:
     deep_crawl: bool = actor_input.get("deepCrawl", False)
     include_comments: bool = actor_input.get("includeComments", True)
     include_crossposts: bool = actor_input.get("includeCrossposts", True)
-    cookies: dict[str, Any] = actor_input.get("cookies", {})
+    cookies: list[dict[str, Any]] = actor_input.get("cookies", {})
 
     links: list[str] = [url for link in raw_links if (url := normalize_url(link.get("url")))]
     if proxy == {"useApifyProxy": False}:
@@ -50,8 +50,13 @@ async def get_actor_inputs(actor) -> dict[str, Any]:
 
     stop_date: dt.datetime = _parse_stop_date(stop_date_raw)
 
-    loid_cookie: Optional[str] = cookies.get("loid")
-    reddit_session: Optional[str] = cookies.get("reddit_session")
+    loid_cookie: Optional[str] = None
+    reddit_session: Optional[str] = None
+    for cookie in cookies:
+        name = cookie.get("name", '')
+        if name == "loid": loid_cookie: str = cookie.get("value")
+        elif name == "reddit_session": reddit_session: str = cookie.get("value")
+
     if all([loid_cookie, reddit_session]):
         settings["REDDIT_LOID_COOKIE"] = loid_cookie
         settings["REDDIT_SESSION_COOKIE"] = loid_cookie
