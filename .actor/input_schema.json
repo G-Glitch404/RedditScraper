@@ -31,7 +31,7 @@
       "type": "object",
       "editor": "json",
       "nullable": true,
-      "isSecret": true,
+      "isSecret": false,
       "sectionCaption": "Account access",
       "sectionDescription": "Optional authentication cookies (loid, reddit_session)\n - you need to use it if the actor is not working probably."
     },
@@ -71,7 +71,7 @@
       "description": "Drop any post that does not contain all selected fields. Leave empty to keep all posts.\nExample: selecting body and title will keep only posts that have both fields populated.\n If title or body are missing then the post will be dropped and it won't show up",
       "type": "array",
       "minItems": 0,
-      "maxItems": 39,
+      "maxItems": 40,
       "nullable": true,
       "editor": "select",
       "items": {
