@@ -21,8 +21,8 @@ settings = {
 
     "MAX_AMOUNT_LIMIT": 1_000,
     "STOP_DATE": None,
-    "REDDIT_LOID_COOKIE": os.environ["REDDIT_LOID_COOKIE"],
-    "REDDIT_SESSION_COOKIE": os.environ["REDDIT_SESSION_COOKIE"],
+    "REDDIT_LOID_COOKIE": os.environ.get("REDDIT_LOID_COOKIE"),
+    "REDDIT_SESSION_COOKIE": os.environ.get("REDDIT_SESSION_COOKIE"),
     "DEEP_CRAWL_COMMENTS_SECTION": False,
     "INCLUDE_COMMENTS": True,
     "INCLUDE_CROSSPOSTS": True,
@@ -30,5 +30,5 @@ settings = {
     "TODAY": today(),
 
     "DATABASE_ENABLED": False,  # change it if you want to use and store to the database
-    "DATABASE": os.environ["DATABASE_URL"],  # change per database
+    "DATABASE": os.environ.get("DATABASE_URL"),  # change per database
 }
