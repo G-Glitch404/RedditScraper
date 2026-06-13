@@ -1,8 +1,8 @@
+import time
 import datetime as dt
 import asyncio
-import json.decoder
-import time
 import urllib.parse
+import json.decoder
 
 from typing import Union, Optional, Any, Coroutine, AsyncGenerator
 
@@ -131,9 +131,11 @@ class RedditCrawler:
         comment["is_author_blocked"] = extract(raw_comment, "author_is_blocked")
         comment["published_at"] = dt.datetime.fromtimestamp(timestamp, tz=dt.timezone.utc) if (timestamp := extract(raw_comment, "created_utc")) else None
 
-        comment["replies"] = []
-        if raw_replies := extract(raw_comment, "replies", "data", "children"):
-            comment["replies"] = (await self._parse_comment_sec(comment["link_id"], comment["subreddit"], Post(), raw_replies))["comments"]
+        # Feature disabled until future updates
+        # comment["replies"] = []  # storing the replies here for later, so we don't get rate limited while crawling
+        # if raw_replies := extract(raw_comment, "replies", "data", "children"):
+        #     comment["replies"] = (await self._parse_comment_sec(comment["link_id"], comment["subreddit"], Post(), raw_replies))['comments']
+
         return comment
 
     async def _parse_comment_sec(
@@ -144,18 +146,23 @@ class RedditCrawler:
             payload: list[dict[str, Any]]
     ) -> Post:
         """ parse comments section from a reddit's post JSON payload """
-        extracted_comments: int = 0
-        post_obj["comments"] = []
-        for raw_comment_ in payload:
-            if raw_comment_["kind"] == 'more' and link_id:
-                async for comment_ in self.comments_crawler.crawl_deep_comment_sec(subreddit, raw_comment_["data"], link_id):
-                    post_obj["comments"].append(comment_)
-                    extracted_comments += 1
+        def append_comment(comment: Comment):
+            if comment["link_id"]: post_obj["comments"].append(comment)
 
-            raw_comment_: dict = raw_comment_["data"]
-            comment_: Comment = await self._parse_comment(raw_comment_)
-            post_obj["comments"].append(comment_)
-            extracted_comments += 1
+        async def deep_crawl(more_payload: dict[str, Any]):
+            self.logger.debug(f"fetching more comments for post {link_id} - deep crawling is enabled")
+            async for comment in self.comments_crawler.crawl_deep_comment_sec(subreddit, more_payload, link_id):
+                append_comment(comment)
+
+        post_obj["comments"] = []
+
+        for raw_comment_ in payload:
+            if raw_comment_["kind"] == 'more' and settings["DEEP_CRAWL_COMMENTS_SECTION"]:
+                await deep_crawl(raw_comment_["data"])
+            else:
+                raw_comment_: dict = raw_comment_["data"]
+                comment_: Comment = await self._parse_comment(raw_comment_)
+                append_comment(comment_)
 
         return post_obj
 
@@ -264,24 +271,27 @@ class CommentsCrawler:
         self.session = session
         self.logger = logger
 
-    async def _fetch_comment_sec(self, post_id: str, children: list[str]) -> list[Union[dict[str, Any], None]]:
-        response = await self.session.get(
-            url=settings["REDDIT_ENDPOINT"] + '/api/morechildren',
-            params={
-                "api_type": 'json',
-                "link_id": post_id,
-                "children": ','.join(children).strip(','),
-                "limit_children": True,
-                "raw_json": 1,
-            },
-        )
+    async def _fetch_comment_sec(
+            self,
+            post_id: str,
+            children: list[str],
+    ) -> list[Union[dict[str, Any]]]:
+        response = await self.session.get(url=settings["REDDIT_ENDPOINT"] + '/api/morechildren', params={
+            "api_type": 'json',
+            "link_id": post_id,
+            "children": ','.join(children).strip(','),
+            "limit_children": True,
+            "raw_json": 1,
+        })
 
         try: json_response: dict[str, Any] = response.json()
         except json.decoder.JSONDecodeError as e:
             self.logger.error(
-                f"couldn't scrape post comment section -  "
+                f"couldn't scrape post comment section  -  "
+                f"\nlink: {response.request.url}\n"
+                f"status_code: {response.status_code}  "
                 f"e: {str(e)}  "
-                f"post_id: {post_id}  "
+                f"post_id: {post_id}\n"
                 f"response_text: {response.text if len(response.text) < 1700 else f'{response.text[:850]}...{response.text[-850:]}'}"
             )
             return []
@@ -300,15 +310,17 @@ class CommentsCrawler:
 
         for idx in range(0, len(children_nodes), 99):
             node: list[str] = children_nodes[idx: idx + 99]
-            comments_batch: list[dict[str, Any]] = await self._fetch_comment_sec(post_id, node)
+            comments_batch = await self._fetch_comment_sec(post_id, node)
 
             for raw_comment in comments_batch:
                 comment = Comment()
+                raw_comment: dict[str, Any] = extract(raw_comment, "data")
 
                 comment["parent_id"] = extract(raw_comment, "parent")
-                comment["link_id"] = extract(raw_comment, "link")
+                comment["link_id"] = extract(raw_comment, "link") or post_id
                 comment["comment_id"] = extract(raw_comment, "id")
                 comment["body"] = extract(raw_comment, "contentText")
                 comment["link"] = f'{settings["REDDIT_ENDPOINT"]}/{subreddit}/comments/{post_id.split("_", 1)[-1]}/comment/{comment["comment_id"]}'
 
-                if comment["comment_id"]: yield comment
+                if comment["comment_id"] and comment["link_id"]:
+                    yield comment

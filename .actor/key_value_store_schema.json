@@ -2,7 +2,7 @@
     "actorKeyValueStoreSchemaVersion": 1,
     "title": "Key-Value Store Schema",
     "collections": {
-        "Articles": {
+        "Posts": {
             "title": "Posts",
             "keyPrefix": "posts-",
             "description": "All Posts scraped by the actor."

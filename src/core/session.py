@@ -6,7 +6,7 @@ from curl_cffi.requests import AsyncSession
 
 from src.core.logger import Logger
 from src.settings import settings
-from src.util.decorators import retry
+from src.util.decorators import catch_exceptions
 
 
 class Session(AsyncSession):
@@ -23,10 +23,9 @@ class Session(AsyncSession):
         super(Session, self).__init__()
         self.headers.update(self.generate_fingerprint())
 
-        self.get('https://www.google.com/')  # we add some cookies so the session is not empty, and we check the network
         if isinstance(proxy, list):
-            if isinstance(proxy, list): proxy = random.choice(proxy)
-            self.proxies = {"https": proxy, "http": proxy}  # then we add the proxies after so we check them
+            if isinstance(proxy, list): proxy: str = random.choice(proxy)
+            self.proxies.update({"https": proxy, "http": proxy})
             self.logger.info(f'proxy: {proxy} is implemented')
 
         self.logger.info('Session initialized successfully')
@@ -37,26 +36,26 @@ class Session(AsyncSession):
         headers = fingerprint.generate(user_agent=user_agent or self.headers.get('User-Agent')).headers
         return headers
 
-    @retry
+    @catch_exceptions
     async def request(self, method, url, *args, **kwargs) -> Response:
         """ accept http method and forward to parent """
-        kwargs.update({'timeout': 120, 'impersonate': "chrome99", 'verify': True})
+        kwargs.update({
+            'method': method,
+            'url': url,
+            'headers': self.headers,
+            'cookies': self.cookies,
+            'timeout': 120,
+            'impersonate': "chrome99",
+            'verify': True,
+        })
 
-        response: Response = await super(Session, self).request(
-            method=method,
-            url=url,
-            headers=self.headers,
-            cookies=self.cookies,
-            *args,
-            **kwargs,
-        )
-
+        response: Response = await super(Session, self).request(*args, **kwargs)
         if not response:
             self.logger.error(f'{method} request failed')
             return Response()
 
         return response
 
-    async def get(self, *args, **kwargs) -> Response:
+    async def get(self, url: str, **kwargs) -> Response:
         """ GET request with retry decorator """
-        return await self.request('GET', *args, **kwargs)
+        return await self.request('GET', url, **kwargs)

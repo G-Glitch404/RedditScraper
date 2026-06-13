@@ -9,11 +9,11 @@
       "description": "All Reddit posts scraped by the actor",
       "template": "{{links.apiDefaultDatasetUrl}}/items"
     },
-    "articles_kv": {
+    "posts_kv": {
       "type": "string",
-      "title": "articles key-value collection",
-      "description": "key-value store collection with article files",
-      "template": "{{links.apiDefaultKeyValueStoreUrl}}/keys?collection=Articles"
+      "title": "posts key-value collection",
+      "description": "key-value store collection with post files",
+      "template": "{{links.apiDefaultKeyValueStoreUrl}}/keys?collection=Posts"
     }
   }
 }

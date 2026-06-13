@@ -43,7 +43,7 @@
                     "link",
                     "images_urls",
                     "videos_urls",
-                    "replies"
+                    "comments"
                 ]
             },
             "display": {
@@ -239,8 +239,8 @@
                         "format": "array"
                     },
 
-                    "Replies": {
-                        "label": "Replies",
+                    "Comments": {
+                        "label": "Comments",
                         "format": "array"
                     }
                 }

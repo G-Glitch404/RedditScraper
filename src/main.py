@@ -10,7 +10,6 @@ from src.util.utils import normalize_url
 
 logger = Logger("Control")
 
-# TODO: Replies of comments are sometimes empty debug and fix
 # TODO: merge videos_urls and images_urls into media and filter any None,
 #  make sure videos_urls and images_urls are valid and actual available media
 

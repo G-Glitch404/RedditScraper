@@ -29,7 +29,7 @@ class Comment(Item):
     is_edited: bool = None
     is_author_blocked: bool = None
     published_at: dt.datetime = None
-    replies: list = None
+    # replies: list = None  # disabled until future update
 
     def __add__(self, other):
         return Comment(

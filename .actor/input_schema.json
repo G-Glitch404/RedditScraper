@@ -114,7 +114,7 @@
           "link",
           "images_urls",
           "videos_urls",
-          "replies"
+          "comments"
         ],
         "enumTitles": [
           "Thumbnail",
@@ -155,7 +155,7 @@
           "Link",
           "Images URLs",
           "Videos URLs",
-          "Replies"
+          "Comments"
         ]
       },
       "default": []
