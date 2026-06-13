@@ -7,7 +7,7 @@ from psycopg import rows, sql
 from psycopg.errors import UniqueViolation
 
 from src.settings import settings
-from core.logger import Logger
+from src.core.logger import Logger
 
 
 class Database:

@@ -1,13 +1,6 @@
-networks:
-  crawlers-network:
-    external: true
-
-volumes:
-  reddit_logs:
-
 services:
   app:
-    image: localhost/news-crawler:latest
+    image: localhost/reddit-crawler:latest
     container_name: reddit-crawler-app
     restart: unless-stopped
     env_file: ./.env
@@ -24,9 +17,16 @@ services:
       - 8.8.8.8
       - 8.8.4.4
     volumes:
-      - news_logs:/app/logs:Z
+      - reddit_logs:/app/logs:Z
     healthcheck:
       test: ["CMD-SHELL", "/bin/sh -c 'ss -ltn | grep -q :${PORT}'"]
       interval: 10s
       timeout: 5s
       retries: 6
+
+networks:
+  crawlers-network:
+    external: true
+
+volumes:
+  reddit_logs:

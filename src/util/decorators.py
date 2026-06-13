@@ -1,9 +1,10 @@
 import json
 import time
 
-from core.logger import Logger
 from functools import wraps
 from typing import Any, Callable
+
+from src.core.logger import Logger
 
 retry_logger = Logger("Retry")
 catch_logger = Logger('ExceptionsHandler')

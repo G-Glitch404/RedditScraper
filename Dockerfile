@@ -5,14 +5,16 @@ WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
-RUN apt-get update && apt-get install -y --no-install-recommends build-essential curl && \
-    rm -rf /var/lib/apt/lists/* && \
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends build-essential curl && \
+    rm -rf /var/lib/apt/lists/*
 
-# create the venv and force-install packaging/requests as a safety net
+COPY requirements.txt .
+
+# create the venv & install the requirements
 RUN python -m venv /opt/venv && \
-    /opt/venv/bin/pip install --no-cache-dir uvicorn && \
-    /opt/venv/bin/pip install --no-cache-dir -r requirements.txt && \
-    /opt/venv/bin/pip install --no-cache-dir packaging requests  # safety net
+    /opt/venv/bin/pip install --no-cache-dir gunicorn && \
+    /opt/venv/bin/pip install --no-cache-dir -r requirements.txt
 
 # stage 2: final
 FROM python:3.13.1-slim
@@ -25,7 +27,7 @@ RUN useradd -m glitch && \
     chown -R glitch:glitch /app/
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends libpq5 tini && \
+    apt-get install -y --no-install-recommends libpq5 tini iproute2 && \
     rm -rf /var/lib/apt/lists/* && \
     apt autoremove -y && \
     apt clean
@@ -42,4 +44,7 @@ ENV PATH="/opt/venv/bin:$PATH" \
 USER glitch
 
 ENTRYPOINT ["/usr/bin/tini", "--"]
-CMD ["uvicorn", "src.api:app", "--host", "0.0.0.0", "--port", "9092"]
+
+EXPOSE 9092
+
+CMD ["gunicorn", "-b", "0.0.0.0:9092", "src.api:app"]

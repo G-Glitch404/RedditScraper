@@ -19,3 +19,7 @@ def test_api():
 
     assert response_json["success"] is True
     assert len(response_json["result"]) > 1
+
+
+if __name__ == "__main__":
+    test_api()
