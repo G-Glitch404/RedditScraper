@@ -112,7 +112,7 @@
 
                     "Body": {
                         "label": "Body",
-                        "format": "date"
+                        "format": "text"
                     },
 
                     "Score": {
