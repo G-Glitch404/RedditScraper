@@ -6,17 +6,19 @@ from typing import Any, Optional
 from src.RedditCrawler import RedditCrawler
 from src.settings import settings
 from src.core.logger import Logger
+from src.items.post import Post
 from src.util.utils import normalize_url
 
 logger = Logger("Control")
 
 
-async def push_post(actor, post, filter_fields: Optional[list[str]] = None) -> bool:
+async def push_post(actor, post: Post, filter_fields: Optional[list[str]] = None) -> bool:
     """ pushes a post to apify only when it passes field filters """
     def _is_missing(value: Any) -> bool:
         """ check whether a field should count as missing """
         return value is None or value == "" or value == []
 
+    post: dict[str, Any] = post.as_dict()
     filter_fields: list[str] = filter_fields or []
 
     if not filter_fields:
