@@ -334,14 +334,3 @@ class CommentsCrawler:
 
                 if comment["comment_id"] and comment["link_id"]:
                     yield comment
-
-
-if __name__ == "__main__":
-    async def main():
-        crawler = RedditCrawler()
-        async for post in crawler.crawl('https://www.reddit.com/r/AlexandriaEgy', max_amount=20):
-            for k, v in post:
-                print(f"{k}: {v}")
-            break
-
-    asyncio.run(main())

@@ -43,7 +43,7 @@ async def get_actor_inputs(actor) -> dict[str, Any]:
     actor_input: dict[str, Any] = await actor.get_input() or {}
 
     keywords: list[str] = actor_input.get("keywords", [])
-    raw_links: list[dict[str, str]] = actor_input.get("links", []) or []
+    raw_links: list[dict[str, str]] = actor_input.get("links", [d]) or []
     proxy: Optional[dict[str, Any]] = actor_input.get("proxyConfiguration", {"useApifyProxy": False})
     max_amount: int = int(actor_input.get("maxPosts", 10) or 10)
     stop_date_raw: Optional[str] = actor_input.get("stopDate")
@@ -139,5 +139,6 @@ async def main() -> None:
                 max_amount=settings["MAX_AMOUNT_LIMIT"],
                 stop_date=settings["STOP_DATE"]
             ):
+                post["published_at"] = str(post["published_at"])
                 if await push_post(actor, post):
-                    actor.charge(event_name='pushed-result')
+                    await actor.charge(event_name='pushed-result')

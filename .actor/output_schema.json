@@ -1,7 +1,7 @@
 {
   "actorOutputSchemaVersion": 1,
   "title": "Ultimate-Reddit-Scraper",
-  "description": "Ultimate News Scraper Outputs",
+  "description": "Ultimate Reddit Scraper Outputs",
   "properties": {
     "results": {
       "type": "string",
