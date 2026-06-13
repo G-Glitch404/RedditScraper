@@ -11,7 +11,7 @@
       "editor": "requestListSources",
       "default": [],
       "minItems": 1,
-      "maxItems": 25
+      "maxItems": 1000
     },
 
     "maxPosts": {
