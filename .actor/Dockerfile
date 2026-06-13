@@ -4,11 +4,10 @@ WORKDIR /usr/src/app
 
 COPY src requirements.txt /usr/src/app/
 
-RUN  mkdir logs /usr/src/app/ \
+RUN mkdir -p logs \
   && pip install --no-cache-dir -r requirements.txt \
   && python3 -m compileall -q . \
-  && apt-get update \
-  && rm -rf /var/lib/apt/lists/* \
+  && rm -rf /var/lib/apt/lists/*
 
 ENV DISPLAY=:99
 

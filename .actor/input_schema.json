@@ -29,7 +29,6 @@
       "type": "object",
       "editor": "json",
       "nullable": true,
-      "default": null,
       "isSecret": true,
       "sectionCaption": "Account access",
       "sectionDescription": "Optional authentication cookies (loid, reddit_session)\n - you need to use it if the actor is not working probably."

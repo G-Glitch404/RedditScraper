@@ -15,8 +15,8 @@ settings = {
     "VERBOSE": True,
     "LOGGING_LEVEL": logging.DEBUG,
 
-    "API_HOST": "0.0.0.0",
-    "API_PORT": 9092,
+    "API_HOST": os.environ.get("HOST", "0.0.0.0"),
+    "API_PORT": int(os.environ.get("PORT", 9092)),
     "CPU_CORES": cpu_count(),
 
     "MAX_AMOUNT_LIMIT": 1_000,
