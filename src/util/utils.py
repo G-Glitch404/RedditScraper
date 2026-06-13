@@ -6,10 +6,19 @@ from typing import Callable, Any, Union, Optional
 
 DEFAULT_DATE_FORMAT: str = "%Y-%m-%d %H:%M:%S"
 
-normalize_url: Callable[[str], str] = lambda reddit_url: (reddit_url.strip().split("?", 1)[0].replace('/.json', '') + '/.json').replace('//', '/')
 pagination: Callable[[dict], dict[str, str]] = lambda payload: {"after": extract(payload, "data", "after")}
 today: Callable[[], dt.date] = lambda: dt.datetime.now(tz=dt.timezone.utc).date()
 clean_text: Callable[[Any], str] = lambda text: re.sub('\n+|\\s+|\\t+|\\r+|\\r\\n+|\\r\\n', ' ', ''.join(text)).strip()
+
+
+def normalize_url(reddit_url: str) -> str:
+    """ normalize a reddit url to a standard format """
+    url: str = reddit_url.strip().split("?", 1)[0]
+    url: str = url.replace('/.json', '') + '/.json'.replace('//', '/')
+    url: str = url.replace('https:/', '').replace('http:/', '')
+    if url.startswith('/'): url: str = url[1:]
+
+    return 'https://' + url
 
 
 def extract(item: Any, *index: Union[str, int], default: Optional[Any] = None) -> Any:
