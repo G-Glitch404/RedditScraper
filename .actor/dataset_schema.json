@@ -31,7 +31,7 @@
                     "is_pinned",
                     "is_author_premium",
                     "is_edited",
-                    "is_gild",
+                    "can_gild",
                     "is_comments_still_active",
                     "is_score_hidden",
                     "is_over_18",
@@ -180,7 +180,7 @@
                     },
 
                     "is gild": {
-                        "label": "is gild",
+                        "label": "can gild",
                         "format": "boolean"
                     },
 

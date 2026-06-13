@@ -79,7 +79,7 @@ class RedditCrawler:
         post_obj["total_crossposts"] = extract(payload, "num_crossposts")
         post_obj["is_crosspost"] = True if post_obj["crosspost_parent"] else False
         post_obj["is_over_18"] = extract(payload, "over_18")
-        post_obj["is_gild"] = extract(payload, "can_gild")
+        post_obj["can_gild"] = extract(payload, "can_gild")
         post_obj["is_edited"] = extract(payload, "edited")
         post_obj["is_pinned"] = extract(payload, "pinned")
         post_obj["is_hidden"] = extract(payload, "hidden")

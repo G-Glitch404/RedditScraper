@@ -39,7 +39,7 @@ class Post(Item):
     is_pinned: bool = None
     is_author_premium: bool = None
     is_edited: bool = None
-    is_gild: bool = None
+    can_gild: bool = None
     is_comments_still_active: bool = None
     is_score_hidden: bool = None
     is_over_18: bool = None
