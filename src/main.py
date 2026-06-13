@@ -10,9 +10,6 @@ from src.util.utils import normalize_url
 
 logger = Logger("Control")
 
-# TODO: merge videos_urls and images_urls into media and filter any None,
-#  make sure videos_urls and images_urls are valid and actual available media
-
 
 async def push_post(actor, post, filter_fields: Optional[list[str]] = None) -> bool:
     """ pushes a post to apify only when it passes field filters """

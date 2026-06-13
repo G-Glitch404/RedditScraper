@@ -45,12 +45,13 @@ class Post(Item):
     is_over_18: bool = None
     is_locked: bool = None
     is_spoiler: bool = None
+    is_gallery: bool = None
+    is_video: bool = None
     is_original_content: bool = None
     is_crosspostable: bool = None
     is_removed: dict[str, Any] = None
     link: str = None
-    images_urls: list[str] = None
-    videos_urls: list[str] = None
+    found_media: list[str] = None
     comments: list[dict[str, Any]] = None
 
     def insert_to_db(self, table_name: str = "reddit_posts") -> bool:

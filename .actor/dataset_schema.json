@@ -37,12 +37,13 @@
                     "is_over_18",
                     "is_locked",
                     "is_spoiler",
+                    "is_gallery",
+                    "is_video",
                     "is_original_content",
                     "is_crosspostable",
                     "is_removed",
                     "link",
-                    "images_urls",
-                    "videos_urls",
+                    "found_media",
                     "comments"
                 ]
             },
@@ -209,6 +210,16 @@
                         "format": "boolean"
                     },
 
+                    "is gallery": {
+                        "label": "is gallery",
+                        "format": "boolean"
+                    },
+
+                    "is video": {
+                        "label": "is video",
+                        "format": "boolean"
+                    },
+
                     "is original content": {
                         "label": "is original content",
                         "format": "boolean"
@@ -229,13 +240,8 @@
                         "format": "link"
                     },
 
-                    "Images": {
-                        "label": "Images",
-                        "format": "array"
-                    },
-
-                    "Videos": {
-                        "label": "Videos",
+                    "Found Media": {
+                        "label": "Found Media",
                         "format": "array"
                     },
 

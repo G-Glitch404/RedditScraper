@@ -73,8 +73,6 @@ class RedditCrawler:
         post_obj["post_flair"] = extract(payload, "link_flair_text")
         post_obj["type"] = extract(payload, "post_hint", default='').split(":")[-1] or None
         post_obj["published_at"] = dt.datetime.fromtimestamp(extract(payload, "created_utc"), tz=dt.timezone.utc)
-        post_obj["videos_urls"] = [extract(payload, "url_overridden_by_dest"), extract(payload, "preview", "reddit_video_preview", "fallback_url")]
-        post_obj["images_urls"] = []
         post_obj["is_crosspostable"] = extract(payload, "is_crosspostable")
         post_obj["total_crossposts"] = extract(payload, "num_crossposts")
         post_obj["is_crosspost"] = True if post_obj["crosspost_parent"] else False
@@ -83,9 +81,12 @@ class RedditCrawler:
         post_obj["is_edited"] = extract(payload, "edited")
         post_obj["is_pinned"] = extract(payload, "pinned")
         post_obj["is_hidden"] = extract(payload, "hidden")
+        post_obj["is_gallery"] = extract(payload, "is_gallery")
+        post_obj["is_video"] = extract(payload, "is_video")
         post_obj["is_locked"] = extract(payload, "locked")
         post_obj["is_spoiler"] = extract(payload, "spoiler")
         post_obj["is_author_premium"] = extract(payload, "author_premium")
+
         post_obj["is_removed"] = {
             "num_reports": extract(payload, "num_reports"),
             "removed_by": extract(payload, "removed_by"),
@@ -93,6 +94,13 @@ class RedditCrawler:
             "is_publisher_blocked": extract(payload, "author_is_blocked"),
             "mod_reason": extract(payload, "mod_reason_by"),
         }
+        post_obj["found_media"] = [
+            extract(payload, 'url'),
+            extract(payload, 'url_overridden_by_dest'),
+            extract(payload, "preview", "reddit_video_preview", "fallback_url")
+        ]
+
+        post_obj["found_media"] = [link for link in post_obj["found_media"] if link]
 
         return post_obj
 
@@ -106,7 +114,8 @@ class RedditCrawler:
 
         return post_obj
 
-    async def _parse_comment(self, raw_comment: dict[str, Any]) -> Comment:
+    @staticmethod
+    async def _parse_comment(raw_comment: dict[str, Any]) -> Comment:
         comment = Comment()
 
         comment["author"] = extract(raw_comment, "author")
@@ -324,3 +333,14 @@ class CommentsCrawler:
 
                 if comment["comment_id"] and comment["link_id"]:
                     yield comment
+
+
+if __name__ == "__main__":
+    async def main():
+        crawler = RedditCrawler()
+        async for post in crawler.crawl('https://www.reddit.com/r/AlexandriaEgy', max_amount=20):
+            for k, v in post:
+                print(f"{k}: {v}")
+            break
+
+    asyncio.run(main())
