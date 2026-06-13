@@ -69,7 +69,7 @@ async def get_actor_inputs(actor) -> dict[str, Any]:
 
     if all([loid_cookie, reddit_session]):
         settings["REDDIT_LOID_COOKIE"] = loid_cookie
-        settings["REDDIT_SESSION_COOKIE"] = loid_cookie
+        settings["REDDIT_SESSION_COOKIE"] = reddit_session
     else:
         logger.warning("missing cookies detected, defaulting to bot's cookies (could case problems while crawling).")
 

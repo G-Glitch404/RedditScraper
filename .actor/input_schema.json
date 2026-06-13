@@ -21,7 +21,7 @@
       "default": 10,
       "editor": "number",
       "prefill": 1000,
-      "maximum": 30000,
+      "maximum": 10000,
       "minimum": 10
     },
 
@@ -31,7 +31,7 @@
       "type": "object",
       "editor": "json",
       "nullable": true,
-      "isSecret": false,
+      "isSecret": true,
       "sectionCaption": "Account access",
       "sectionDescription": "Optional authentication cookies (loid, reddit_session)\n - you need to use it if the actor is not working probably."
     },

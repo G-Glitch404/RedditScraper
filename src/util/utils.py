@@ -14,7 +14,7 @@ clean_text: Callable[[Any], str] = lambda text: re.sub('\n+|\\s+|\\t+|\\r+|\\r\\
 def normalize_url(reddit_url: str) -> str:
     """ normalize a reddit url to a standard format """
     url: str = reddit_url.strip().split("?", 1)[0]
-    url: str = url.replace('/.json', '') + '/.json'.replace('//', '/')
+    url: str = (url.replace('/.json', '') + '/.json').replace('//', '/')
     url: str = url.replace('https:/', '').replace('http:/', '')
     if url.startswith('/'): url: str = url[1:]
 
