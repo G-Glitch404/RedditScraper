@@ -20,7 +20,7 @@ async def push_post(actor, post, filter_fields: Optional[list[str]] = None) -> b
     filter_fields: list[str] = filter_fields or []
 
     if not filter_fields:
-        await actor.push_items(post)
+        await actor.push_data(post)
         return True
 
     for field in filter_fields:
