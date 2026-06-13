@@ -14,9 +14,23 @@ logger = Logger("Control")
 #  make sure videos_urls and images_urls are valid and actual available media
 
 
-async def push_post(actor, post):
-    """ push posts to apify output tables applying all the actor's inputs filters """
-    actor.push_items(post)
+async def push_post(actor, post, filter_fields: Optional[list[str]] = None) -> bool:
+    """ pushes a post to apify only when it passes field filters """
+    def _is_missing(value: Any) -> bool:
+        """ check whether a field should count as missing """
+        return value is None or value == "" or value == []
+
+    filter_fields: list[str] = filter_fields or []
+
+    if not filter_fields:
+        await actor.push_items(post)
+        return True
+
+    for field in filter_fields:
+        if not _is_missing(post[field]): continue
+        return False
+
+    return False
 
 
 async def get_actor_inputs(actor) -> dict[str, Any]:
@@ -130,5 +144,5 @@ async def main() -> None:
                 max_amount=settings["MAX_AMOUNT_LIMIT"],
                 stop_date=settings["STOP_DATE"]
             ):
-                await push_post(actor, post)
-                actor.charge(event_name='pushed-result')
+                if await push_post(actor, post):
+                    actor.charge(event_name='pushed-result')
