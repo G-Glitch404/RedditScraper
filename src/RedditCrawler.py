@@ -212,13 +212,18 @@ class RedditCrawler:
             reddit_url: str,
             max_amount: int = settings["MAX_AMOUNT_LIMIT"],
             stop_date: Optional[dt.datetime] = None,
+            rate_limit_retries: Optional[int] = 1
     ) -> AsyncGenerator[Post, None]:
         """ main function to initiate the full crawl pipeline """
         url_path: list[str] = urllib.parse.urlparse(reddit_url).path.strip("/").split("/")
         reddit_payload: Union[dict[str, Any], list[dict[str, Any]]] = await self.fetch_json(reddit_url)
         if reddit_payload is None:
             self.logger.error(f"crawling failed for post with  link: {reddit_url}  -  payload is None")
-            return
+            if isinstance(rate_limit_retries, int) and rate_limit_retries > 0:
+                rate_limit_retries -= 1
+                async with asyncio.Lock():
+                    await asyncio.sleep(60)
+            else: return
 
         if "/comments/" in reddit_url:  # scraping 1 post
             start_time: float = time.time()

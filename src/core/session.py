@@ -1,8 +1,4 @@
-import asyncio
-import time
 import random
-
-from collections import deque
 
 from requests import Response
 from browserforge.fingerprints import FingerprintGenerator
@@ -32,30 +28,7 @@ class Session(AsyncSession):
             self.proxies.update({"https": proxy, "http": proxy})
             self.logger.info(f'proxy: {proxy} is implemented')
 
-        self._request_count: int = 0
-        self._request_timestamps: deque[float] = deque(maxlen=100)  # Keep last 100 request times
-        self._rate_limit_lock = asyncio.Lock()
-
         self.logger.info('Session initialized successfully')
-
-    async def _respect_rate_limit(self) -> None:
-        async with self._rate_limit_lock:
-            now = time.monotonic()
-
-            while self._request_timestamps and now - self._request_timestamps[0] >= 60:
-                self._request_timestamps.popleft()
-
-            if len(self._request_timestamps) >= 100:
-                wait_for = 60 - (now - self._request_timestamps[0])
-                if wait_for > 0:
-                    self.logger.info(f"rate limit reached, sleeping for {wait_for:.2f} seconds then continuing")
-                    await asyncio.sleep(wait_for)
-
-                now = time.monotonic()
-                while self._request_timestamps and now - self._request_timestamps[0] >= 60:
-                    self._request_timestamps.popleft()
-
-            self._request_timestamps.append(time.monotonic())
 
     def generate_fingerprint(self, user_agent: str = None) -> dict:
         """ generates headers and user-agent for the session """
@@ -66,8 +39,6 @@ class Session(AsyncSession):
     @catch_exceptions
     async def request(self, method, url, *args, **kwargs) -> Response:
         """ accept http method and forward to parent """
-        await self._respect_rate_limit()
-
         kwargs.update({
             'method': method,
             'url': url,
