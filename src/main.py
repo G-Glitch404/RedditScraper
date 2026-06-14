@@ -75,12 +75,7 @@ async def get_actor_inputs(actor) -> dict[str, Any]:
     actor_input: dict[str, Any] = await actor.get_input() or {}
 
     keywords: list[str] = actor_input.get("keywords", [])
-    raw_links: list[dict[str, str]] = actor_input.get("links", [
-        {'url': 'https://www.reddit.com/r/Rate_My_Wife_/'},
-        {'url': 'https://www.reddit.com/r/AlexandriaEgy/'},
-        {'url': 'https://www.reddit.com/r/PersonalFinanceEgypt/'},
-        {'url': 'https://www.reddit.com/r/shareingsexywife/'},
-    ]) or []
+    raw_links: list[dict[str, str]] = actor_input.get("links", []) or []
     proxy: Optional[dict[str, Any]] = actor_input.get("proxyConfiguration", {"useApifyProxy": False})
     max_amount: int = int(actor_input.get("maxPosts", 1000) or 10)
     stop_date_raw: Optional[str] = actor_input.get("stopDate")

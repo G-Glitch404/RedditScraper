@@ -214,16 +214,17 @@ class RedditCrawler:
             stop_date: Optional[dt.datetime] = None,
     ) -> AsyncGenerator[Post, None]:
         """ main function to initiate the full crawl pipeline """
-        async def _request_fetch_json():
-            _reddit_payload: Union[dict[str, Any], list[dict[str, Any]]] = await self.fetch_json(reddit_url)
+        async def _request_fetch_json(_reddit_url: str, _next_pagination: dict = None) -> Union[dict[str, Any], list[dict[str, Any]], None]:
+            _reddit_payload: Union[dict[str, Any], list[dict[str, Any]]] = await self.fetch_json(_reddit_url, _next_pagination)
             if _reddit_payload is None:
                 self.logger.error(f'failed to fetch json from url: {reddit_url}  -  payload is None, probably 429 too many requests, stopping now...')
                 self.logger.error(f'if the reason is rate limiting you will have to wait for 10 mins before you can crawl with the same account (cookies)')
                 return None
+
             return _reddit_payload
 
         url_path: list[str] = urllib.parse.urlparse(reddit_url).path.strip("/").split("/")
-        reddit_payload = await _request_fetch_json()
+        reddit_payload = await _request_fetch_json(reddit_url)
         if reddit_payload is None: return
 
         if "/comments/" in reddit_url:  # scraping 1 post
@@ -263,7 +264,7 @@ class RedditCrawler:
                     self.logger.info('Crawler reached max found posts for this link exiting...')
                     break
 
-                reddit_payload = await _request_fetch_json()
+                reddit_payload = await _request_fetch_json(reddit_url, next_pagination)
                 if reddit_payload is None: return
 
                 tasks: list[Coroutine[None, None, Post]] = [self.parse(raw_post["data"]) for raw_post in extract(reddit_payload, "data", "children")]
@@ -282,7 +283,7 @@ class RedditCrawler:
                 if extracted_posts_num == last_extracted_posts_num:
                     empty_crawls_limit += 1
                     if empty_crawls_limit >= 3:
-                        self.logger.info('Crawler reached max empty crawls for this link stoping the loop and moving to the next link')
+                        self.logger.error('Crawler reached max empty crawls for this link stoping the loop and moving to the next link')
                         break
 
                 last_extracted_posts_num = extracted_posts_num
