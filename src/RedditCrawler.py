@@ -30,7 +30,7 @@ class RedditCrawler:
     async def fetch_json(
             self,
             reddit_url: str,
-            next_pagination: Optional[dict[str, str]] = None
+            next_pagination: Optional[dict[str, str]] = None,
     ) -> Union[list[dict[str, Any]], dict[str, Any], None]:
         """ fetch raw reddit JSON from a url """
         json_url: str = normalize_url(reddit_url)
@@ -39,7 +39,7 @@ class RedditCrawler:
 
         try: json_response: list[dict[str, Any]] = response.json()
         except json.decoder.JSONDecodeError as e:
-            self.logger.error(f"couldn't scrape post with \n\n e: {str(e)} \n\n url: {reddit_url} \n\n json_url: {json_url} \n\n response_text: {response.text} \n\n response_headers: {response.headers} \n\n request_headers: {response.request.headers}\n")
+            self.logger.error(f"couldn't scrape post with \n\n e: {str(e)} \n\n url: {reddit_url} \n\n json_url: {json_url} \n\n response_text: {response.text} \n\n response_headers: {response.headers} \n\n request_headers: {response.request.headers}")
             return None
 
         self.logger.debug(f"successfully scraped json from url: {reddit_url} ")
@@ -212,18 +212,19 @@ class RedditCrawler:
             reddit_url: str,
             max_amount: int = settings["MAX_AMOUNT_LIMIT"],
             stop_date: Optional[dt.datetime] = None,
-            rate_limit_retries: Optional[int] = 1
     ) -> AsyncGenerator[Post, None]:
         """ main function to initiate the full crawl pipeline """
+        async def _request_fetch_json():
+            _reddit_payload: Union[dict[str, Any], list[dict[str, Any]]] = await self.fetch_json(reddit_url)
+            if _reddit_payload is None:
+                self.logger.error(f'failed to fetch json from url: {reddit_url}  -  payload is None, probably 429 too many requests, stopping now...')
+                self.logger.error(f'if the reason is rate limiting you will have to wait for 10 mins before you can crawl with the same account (cookies)')
+                return None
+            return _reddit_payload
+
         url_path: list[str] = urllib.parse.urlparse(reddit_url).path.strip("/").split("/")
-        reddit_payload: Union[dict[str, Any], list[dict[str, Any]]] = await self.fetch_json(reddit_url)
-        if reddit_payload is None:
-            self.logger.error(f"crawling failed for post with  link: {reddit_url}  -  payload is None")
-            if isinstance(rate_limit_retries, int) and rate_limit_retries > 0:
-                rate_limit_retries -= 1
-                async with asyncio.Lock():
-                    await asyncio.sleep(60)
-            else: return
+        reddit_payload = await _request_fetch_json()
+        if reddit_payload is None: return
 
         if "/comments/" in reddit_url:  # scraping 1 post
             start_time: float = time.time()
@@ -262,10 +263,8 @@ class RedditCrawler:
                     self.logger.info('Crawler reached max found posts for this link exiting...')
                     break
 
-                reddit_payload: Union[dict[str, Any], list[dict[str, Any]]] = await self.fetch_json(reddit_url, next_pagination)
-                if not reddit_payload:
-                    self.logger.error('Crawler received empty response, probably 429 too many requests, stopping...')
-                    break
+                reddit_payload = await _request_fetch_json()
+                if reddit_payload is None: return
 
                 tasks: list[Coroutine[None, None, Post]] = [self.parse(raw_post["data"]) for raw_post in extract(reddit_payload, "data", "children")]
                 extracted_posts: tuple[Post] = await asyncio.gather(*tasks)
