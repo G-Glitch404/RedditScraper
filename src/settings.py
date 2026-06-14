@@ -3,7 +3,6 @@ import logging
 
 from dotenv import load_dotenv
 from multiprocessing import cpu_count
-from src.util.utils import today
 
 load_dotenv()
 
@@ -26,8 +25,6 @@ settings = {
     "DEEP_CRAWL_COMMENTS_SECTION": False,
     "INCLUDE_COMMENTS": True,
     "INCLUDE_CROSSPOSTS": True,
-
-    "TODAY": today(),
 
     "DATABASE_ENABLED": False,  # change it if you want to use and store to the database
     "DATABASE": os.environ.get("DATABASE_URL"),  # change per database

@@ -243,7 +243,9 @@ class RedditCrawler:
 
             self.logger.info(f"detected a large operation url, initiated scraping from a group response with   Link: {reddit_url}   max_amount: '{max_amount}'")
 
+            empty_crawls_limit: int = 0  # when it reaches 3 crawls the crawling for the link must stop
             extracted_posts_num: int = 0
+            last_extracted_posts_num: int = 0
             last_pagination: dict[str, str] = {"after": ''}
             start_time: float = time.time()
 
@@ -256,20 +258,33 @@ class RedditCrawler:
                     break
 
                 reddit_payload: Union[dict[str, Any], list[dict[str, Any]]] = await self.fetch_json(reddit_url, next_pagination)
+                if not reddit_payload:
+                    self.logger.error('Crawler received empty response, probably 429 too many requests, stopping...')
+                    break
+
                 tasks: list[Coroutine[None, None, Post]] = [self.parse(raw_post["data"]) for raw_post in extract(reddit_payload, "data", "children")]
                 extracted_posts: tuple[Post] = await asyncio.gather(*tasks)
 
                 self.logger.debug(f"scraped {len(extracted_posts)} posts yielding results now...")
                 for extracted_post in extracted_posts:
-                    if isinstance(stop_date, dt.datetime) and extracted_post["published_at"] < stop_date: continue
-                    if not settings["INCLUDE_CROSSPOSTS"] and extracted_post["is_crosspost"]: continue
                     if extracted_posts_num >= max_amount: break
+                    if (isinstance(stop_date, dt.datetime) or isinstance(stop_date, dt.date)) and extracted_post["published_at"].date() < stop_date.date(): continue
+                    if not settings["INCLUDE_CROSSPOSTS"] and extracted_post["is_crosspost"]: continue
+
                     yield extracted_post
                     extracted_posts_num += 1
+
                 last_pagination: dict[str, str] = next_pagination
+                if extracted_posts_num == last_extracted_posts_num:
+                    empty_crawls_limit += 1
+                    if empty_crawls_limit >= 3:
+                        self.logger.info('Crawler reached max empty crawls for this link stoping the loop and moving to the next link')
+                        break
+
+                last_extracted_posts_num = extracted_posts_num
 
             end_time: float = time.time()
-            self.logger.info(f"crawler loop exited, Found Posts: {extracted_posts_num} and Took: {round((end_time-start_time)/60, 1)} mins")
+            self.logger.info(f"crawler loop exited, Found Posts: {extracted_posts_num} and Took: {round((end_time-start_time)/60, 2)} mins")
 
         else:
             self.logger.error(f'Possibly malformed input  url: "{reddit_url}"  max_amount: {max_amount}  crawler exiting...')

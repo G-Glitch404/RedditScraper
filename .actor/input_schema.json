@@ -6,12 +6,12 @@
   "properties": {
     "links": {
       "title": "Posts & Feeds URLs",
-      "description": "Add one or more Reddit URLs to crawl.\n - You can use subreddit URLs \n - Users URLs \n - Custom feeds URLs \n - Custom Search URLs \n - posts URLs.",
+      "description": "Add one or more Reddit URLs to crawl. (Maximum is 100 URLs) \n - You can use subreddit URLs \n - Users URLs \n - Custom feeds URLs \n - Custom Search URLs \n - Posts URLs.",
       "type": "array",
       "editor": "requestListSources",
       "default": [],
       "minItems": 1,
-      "maxItems": 25
+      "maxItems": 100
     },
 
     "maxPosts": {
@@ -26,19 +26,19 @@
     },
 
     "cookies": {
-      "title": "Account cookies (optional)",
-      "description": "Paste a JSON object with authenticated Reddit cookies (loid, reddit_session)\n - if you want to scrape as a logged-in account.\n - might be needed if the actor is now working probably.\n - Example: {\"cookie_name\": \"cookie_value\", \"another_cookie_name\": \"another_cookie_value\"}",
+      "title": "Account cookies (Optional) ((Not Very Optional))",
+      "description": "Paste a JSON object with authenticated Reddit cookies (loid, reddit_session)\n - if you want to scrape as a logged-in account, important note: every account is limited to 100 requests per minute\n - might be needed if the actor is now working probably.\n - Example: {\"cookie_name\": \"cookie_value\", \"another_cookie_name\": \"another_cookie_value\"}",
       "type": "object",
       "editor": "json",
       "nullable": true,
       "isSecret": true,
       "sectionCaption": "Account access",
-      "sectionDescription": "Optional authentication cookies (loid, reddit_session)\n - you need to use it if the actor is not working probably."
+      "sectionDescription": "Optional authentication cookies (loid, reddit_session)\n - you need to use it if the actor is not working probably, or you want deep crawl enabled."
     },
 
     "deepCrawl": {
-      "title": "Deep crawl for comments (Charges Extra)",
-      "description": "Enable this to crawl full comment trees, including nested replies and hidden comment batches loaded from Reddit's JSON endpoints.",
+      "title": "Deep crawl for comments (Charges Extra) (Requires Cookies)",
+      "description": "Requires an account Cookies to be provided (loid, reddit_session), Enable this to try and crawl the full comment section\nthis feature is not working probably \n - issue is that it will only crawl top level comments no comments replies only the post's comments \n - also this feature will crawl for the posts links only any feeds links will be crawled without any comments",
       "type": "boolean",
       "nullable": false,
       "default": false,
@@ -165,7 +165,7 @@
     },
     "stopDate": {
       "title": "Stop date",
-      "description": "Stop crawling once posts become older than this date. Only posts published on or after the selected date will be collected. Leave empty to crawl without a date limit.",
+      "description": "won't return any posts older than this date. Only posts published on or after the selected date will be collected. Leave empty to crawl without a date limit.",
       "type": "string",
       "editor": "datepicker",
       "dateType": "absolute",

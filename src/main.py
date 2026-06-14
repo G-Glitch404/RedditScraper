@@ -75,7 +75,7 @@ async def get_actor_inputs(actor) -> dict[str, Any]:
     actor_input: dict[str, Any] = await actor.get_input() or {}
 
     keywords: list[str] = actor_input.get("keywords", ['way', "street", 'work', 'business', 'years'])
-    raw_links: list[dict[str, str]] = actor_input.get("links", [{"url": "https://www.reddit.com/r/mildlyinfuriating"}]) or []
+    raw_links: list[dict[str, str]] = actor_input.get("links", []) or []
     proxy: Optional[dict[str, Any]] = actor_input.get("proxyConfiguration", {"useApifyProxy": False})
     max_amount: int = int(actor_input.get("maxPosts", 1000) or 10)
     stop_date_raw: Optional[str] = actor_input.get("stopDate")
@@ -108,7 +108,6 @@ async def get_actor_inputs(actor) -> dict[str, Any]:
     return {
         "loid_cookie": loid_cookie,
         "reddit_session": reddit_session,
-        "cookies": cookies,
         "keywords": keywords,
         "links": links,
         "proxy_cfg": proxy,
@@ -129,9 +128,15 @@ async def main() -> None:
 
         settings["MAX_AMOUNT_LIMIT"] = actor_inputs["max_amount"]
         settings["STOP_DATE"] = actor_inputs["stop_date"]
-        settings["DEEP_CRAWL_COMMENTS_SECTION"] = actor_inputs["deep_crawl"]
         settings["INCLUDE_COMMENTS"] = actor_inputs["include_comments"]
         settings["INCLUDE_CROSSPOSTS"] = actor_inputs["include_crossposts"]
+
+        if all([actor_inputs["loid_cookie"], actor_inputs["reddit_session"]]):
+            settings["DEEP_CRAWL_COMMENTS_SECTION"] = actor_inputs["deep_crawl"]
+            logger.info("Deep crawl for comments enabled with provided cookies, extra charges will be applied.")
+        elif actor_inputs["deep_crawl"]:
+            logger.warning("Deep crawl for comments requires cookies to be provided, deep crawl will be disabled and crawler will return normal data without an extra charge")
+            settings["DEEP_CRAWL_COMMENTS_SECTION"] = False
 
         if not actor_inputs["links"]:
             actor.log.info('bad input - No start URLs specified in actor input, exiting...')
@@ -143,7 +148,7 @@ async def main() -> None:
 
         actor.log.info(
             f"""\n
-            Actor initialized on  {settings['TODAY']}  -  with Inputs:\n
+            Actor initialized on  {dt.datetime.now(dt.timezone.utc).isoformat()}  -  with Inputs:\n
             ------------------------------------------\n            
             links:  {actor_inputs['links']}
             max_amount:  {actor_inputs['max_amount']}

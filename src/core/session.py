@@ -8,6 +8,8 @@ from src.core.logger import Logger
 from src.settings import settings
 from src.util.decorators import catch_exceptions
 
+# TODO: Build a clam down for every 100 reddit requests wait 1 minute after every 99 requests
+
 
 class Session(AsyncSession):
     """
