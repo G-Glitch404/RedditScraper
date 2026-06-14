@@ -15,7 +15,7 @@
     },
 
     "maxPosts": {
-      "title": "Maximum posts",
+      "title": "Maximum posts per link",
       "type": "integer",
       "description": "Set the maximum number of Reddit posts the actor should collect. Minimum is 10, and Maximum is 10000.\n careful with this option this will scrape the specified amount for every link\n so if you set it to 1000 and provide 10 subreddits/feeds links it will target crawling 10,000 posts and will keep going until 10K posts are crawled and this is not possible for this crawler it will result in 429 (too many requests) from Reddit limiting the actor and stopping it.",
       "default": 10,

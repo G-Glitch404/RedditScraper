@@ -263,8 +263,9 @@ class RedditCrawler:
                 for extracted_post in extracted_posts:
                     if isinstance(stop_date, dt.datetime) and extracted_post["published_at"] < stop_date: continue
                     if not settings["INCLUDE_CROSSPOSTS"] and extracted_post["is_crosspost"]: continue
+                    if extracted_posts_num >= max_amount: break
                     yield extracted_post
-                extracted_posts_num += len(extracted_posts)
+                    extracted_posts_num += 1
                 last_pagination: dict[str, str] = next_pagination
 
             end_time: float = time.time()
