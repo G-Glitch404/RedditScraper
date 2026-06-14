@@ -51,7 +51,7 @@ class Post(Item):
     is_crosspostable: bool = None
     is_removed: dict[str, Any] = None
     link: str = None
-    found_media: list[str] = None
+    found_media: set[str] = None
     comments: list[dict[str, Any]] = None
 
     def insert_to_db(self, table_name: str = "reddit_posts") -> bool:

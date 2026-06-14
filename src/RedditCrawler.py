@@ -62,7 +62,7 @@ class RedditCrawler:
         post_obj["crosspost_parent"] = extract(payload, "crosspost_parent")
         post_obj["post_id"] = extract(payload, "name")
         post_obj["title"] = extract(payload, "title")
-        post_obj["body"] = extract(payload, "selftext")
+        post_obj["body"] = extract(payload, "selftext") or None
         post_obj["link"] = settings['REDDIT_ENDPOINT'] + extract(payload, "permalink")
         post_obj["total_awards"] = extract(payload, "total_awards_received")
         post_obj["is_score_hidden"] = extract(payload, "hide_score")
@@ -82,7 +82,7 @@ class RedditCrawler:
         post_obj["is_edited"] = extract(payload, "edited")
         post_obj["is_pinned"] = extract(payload, "pinned")
         post_obj["is_hidden"] = extract(payload, "hidden")
-        post_obj["is_gallery"] = extract(payload, "is_gallery")
+        post_obj["is_gallery"] = extract(payload, "is_gallery", default=False)
         post_obj["is_video"] = extract(payload, "is_video")
         post_obj["is_locked"] = extract(payload, "locked")
         post_obj["is_spoiler"] = extract(payload, "spoiler")
@@ -95,13 +95,14 @@ class RedditCrawler:
             "is_publisher_blocked": extract(payload, "author_is_blocked"),
             "mod_reason": extract(payload, "mod_reason_by"),
         }
-        post_obj["found_media"] = [
+
+        post_obj["found_media"] = {
             extract(payload, 'url'),
             extract(payload, 'url_overridden_by_dest'),
             extract(payload, "preview", "reddit_video_preview", "fallback_url")
-        ]
+        }
 
-        post_obj["found_media"] = [link for link in post_obj["found_media"] if link]
+        post_obj["found_media"] = {link for link in post_obj["found_media"] if link}
 
         return post_obj
 
@@ -216,7 +217,7 @@ class RedditCrawler:
         url_path: list[str] = urllib.parse.urlparse(reddit_url).path.strip("/").split("/")
         reddit_payload: Union[dict[str, Any], list[dict[str, Any]]] = await self.fetch_json(reddit_url)
         if reddit_payload is None:
-            self.logger.error(f"crawling failed for post with  link: {reddit_url}")
+            self.logger.error(f"crawling failed for post with  link: {reddit_url}  -  payload is None")
             return
 
         if "/comments/" in reddit_url:  # scraping 1 post
@@ -235,7 +236,7 @@ class RedditCrawler:
 
             yield post
 
-        elif len(url_path) >= 2:  # scraping a subreddit/user/custom_feed (with amount limitations)
+        elif len(url_path) >= 1:  # scraping a subreddit/user/custom_feed (with amount limitations)
             if (not isinstance(max_amount, int)) or (max_amount > settings['MAX_AMOUNT_LIMIT']):
                 self.logger.warning(f"max_amount is malformed resetting it from ({type(max_amount)}, {max_amount}) to (int, {settings['MAX_AMOUNT_LIMIT']})")
                 max_amount: int = settings["MAX_AMOUNT_LIMIT"]
@@ -249,7 +250,7 @@ class RedditCrawler:
             while extracted_posts_num < max_amount:
                 next_pagination: dict[str, str] = pagination(reddit_payload)
                 try: stop_loop: bool = last_pagination["after"] == next_pagination["after"]
-                except KeyError: stop_loop: bool = True
+                except (KeyError, TypeError, AttributeError): stop_loop: bool = True
                 if stop_loop:
                     self.logger.info('Crawler reached max found posts for this link exiting...')
                     break

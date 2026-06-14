@@ -4,7 +4,7 @@ from src.settings import settings
 
 
 async def test_scrape_post() -> None:
-    link: str = "https://www.reddit.com/r/AskReddit/"
+    link: str = "https://www.reddit.com/search/?q=stocks_news"
     total_posts = 0
     settings["MAX_AMOUNT_LIMIT"] = 100
     start = time.time()

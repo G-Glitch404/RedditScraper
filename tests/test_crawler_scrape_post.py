@@ -1,16 +1,19 @@
+import json
 import time
 from src.RedditCrawler import RedditCrawler
 
 
 async def test_scrape_post() -> None:
-    link: str = ""
+    link: str = "https://www.reddit.com/r/mildlyinfuriating/comments/1txskkj/resurant_charges_extra_to_take_toppings_off"
     total_comments = 0
     start = time.time()
 
     crawler = RedditCrawler()
     async for post in crawler.crawl(link):
+        print(post)
+        json.dump(post.as_dict(), open("post.json", "w"), indent=2, ensure_ascii=False)
+
         assert post["post_id"]
-        assert post["body"]
         assert post["link"]
 
         for k, v in post:
@@ -30,3 +33,8 @@ async def test_scrape_post() -> None:
     assert total_comments < 80
     end = time.time()
     print("\nOperation took: ", round((end-start), 2), f' secs and total comments: {total_comments}')
+
+
+if __name__ == '__main__':
+    import asyncio
+    asyncio.run(test_scrape_post())

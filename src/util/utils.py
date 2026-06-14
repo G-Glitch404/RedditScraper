@@ -13,12 +13,12 @@ clean_text: Callable[[Any], str] = lambda text: re.sub('\n+|\\s+|\\t+|\\r+|\\r\\
 
 def normalize_url(reddit_url: str) -> str:
     """ normalize a reddit url to a standard format """
-    url: str = reddit_url.strip().split("?", 1)[0]
-    url: str = (url.replace('/.json', '') + '/.json').replace('//', '/')
+    url_parts: list[str] = reddit_url.strip().split("?", 1)
+    url: str = (url_parts[0].replace('/.json', '') + '/.json').replace('//', '/')
     url: str = url.replace('https:/', '').replace('http:/', '')
     if url.startswith('/'): url: str = url[1:]
 
-    return 'https://' + url
+    return ('https://' + url) + (f'?{url_parts[1]}' if len(url_parts) > 1 else '')
 
 
 def extract(item: Any, *index: Union[str, int], default: Optional[Any] = None) -> Any:

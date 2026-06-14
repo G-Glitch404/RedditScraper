@@ -12,24 +12,54 @@ from src.util.utils import normalize_url
 logger = Logger("Control")
 
 
-async def push_post(actor, post: Post, filter_fields: Optional[list[str]] = None) -> bool:
-    """ pushes a post to apify only when it passes field filters """
+async def push_post(
+    actor,
+    post: Post,
+    filter_fields: Optional[list[str]] = None,
+    keywords: Optional[list[str]] = None,
+) -> bool:
+    """push a post to apify only when it passes field and keyword filters"""
     def _is_missing(value: Any) -> bool:
-        """ check whether a field should count as missing """
-        return value is None or value == "" or value == []
+        return value is None or value == "" or value == [] or value == {} or value == ()
 
-    post: dict[str, Any] = post.as_dict()
-    filter_fields: list[str] = filter_fields or []
+    def _collect_text(value: Any) -> str:
+        if value is None:
+            return ""
+        if isinstance(value, str):
+            return value
+        if isinstance(value, dict):
+            return " ".join(_collect_text(v) for v in value.values())
+        if isinstance(value, (list, tuple, set)):
+            return " ".join(_collect_text(v) for v in value)
+        return str(value)
 
-    if not filter_fields:
-        await actor.push_data(post)
-        return True
+    post_dict: dict[str, Any] = post.as_dict()
+    filter_fields = filter_fields or []
+    keywords = [k.strip().lower() for k in (keywords or []) if k and k.strip()]
 
-    for field in filter_fields:
-        if not _is_missing(post[field]): continue
-        return False
+    if filter_fields:
+        for field in filter_fields:
+            if _is_missing(post_dict.get(field)):
+                return False
 
-    return False
+    if keywords:
+        searchable_text = _collect_text(
+            {
+                "title": post_dict.get("title"),
+                "body": post_dict.get("body"),
+                "post_flair": post_dict.get("post_flair"),
+                "publisher": post_dict.get("publisher"),
+                "subreddit": post_dict.get("subreddit"),
+                "comments": post_dict.get("comments"),
+                "found_media": post_dict.get("found_media"),
+            }
+        ).lower()
+
+        if not any(keyword in searchable_text for keyword in keywords):
+            return False
+
+    await actor.push_data(post_dict)
+    return True
 
 
 async def get_actor_inputs(actor) -> dict[str, Any]:
@@ -44,10 +74,10 @@ async def get_actor_inputs(actor) -> dict[str, Any]:
 
     actor_input: dict[str, Any] = await actor.get_input() or {}
 
-    keywords: list[str] = actor_input.get("keywords", [])
-    raw_links: list[dict[str, str]] = actor_input.get("links", []) or []
+    keywords: list[str] = actor_input.get("keywords", ['way', "street", 'work', 'business', 'years'])
+    raw_links: list[dict[str, str]] = actor_input.get("links", [{"url": "https://www.reddit.com/r/mildlyinfuriating"}]) or []
     proxy: Optional[dict[str, Any]] = actor_input.get("proxyConfiguration", {"useApifyProxy": False})
-    max_amount: int = int(actor_input.get("maxPosts", 10) or 10)
+    max_amount: int = int(actor_input.get("maxPosts", 1000) or 10)
     stop_date_raw: Optional[str] = actor_input.get("stopDate")
     filter_fields: list[str] = actor_input.get("filterFields", [])
     deep_crawl: bool = actor_input.get("deepCrawl", False)
@@ -132,9 +162,10 @@ async def main() -> None:
 
         if settings["DEEP_CRAWL_COMMENTS_SECTION"]:
             valid_links: list[str] = [link for link in actor_inputs["links"] if '/comments' in link]
-            await actor.charge(event_name="deep-crawl", count=len(valid_links))
+            await actor.charge(event_name="deep-crawl")
             logger.info(f'charged user for deep crawl of {len(valid_links)} posts')
 
+        valid_posts: int = 1
         for url in actor_inputs["links"]:
             async for post in crawler.crawl(
                 reddit_url=url,
@@ -142,5 +173,13 @@ async def main() -> None:
                 stop_date=settings["STOP_DATE"]
             ):
                 post["published_at"] = str(post["published_at"])
-                if await push_post(actor, post):
+                if await push_post(
+                    actor,
+                    post,
+                    filter_fields=actor_inputs["filter_fields"],
+                    keywords=actor_inputs["keywords"]
+                ):
+                    valid_posts += 1
                     await actor.charge(event_name='pushed-result')
+
+        logger.info(f"actor pushed & charged user for {valid_posts} valid posts, now actor is finished and exiting...")
