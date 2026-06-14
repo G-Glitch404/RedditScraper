@@ -1,7 +1,7 @@
 {
   "actorOutputSchemaVersion": 1,
-  "title": "Ultimate-Reddit-Scraper",
-  "description": "Ultimate Reddit Scraper Outputs",
+  "title": "Light-Weight-Reddit-Scraper",
+  "description": "Light-Weight Reddit Scraper Outputs",
   "properties": {
     "results": {
       "type": "string",

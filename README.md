@@ -1,8 +1,8 @@
-# The Ultimate Reddit Scraper
+# Light-Weight Reddit Scraper
 
 [Open-source](https://github.com/G-Glitch404/RedditScraper) actor to scrape Reddit subreddits, posts, feeds, search results, and comment threads from Reddit JSON endpoints with flexible filtering, media extraction, and structured output.
 
-## Current limitations and downsides of The Ultimate Reddit Scraper
+## Current limitations and downsides of Light-Weight Reddit Scraper
 * I'll do my best fixing all this in the next versions
 * Will probably need an account cookies (loid, reddit_session)
 * Doesn't return comments replies
@@ -10,13 +10,13 @@
   - to bypass the rate-limit use different accounts (cookies) in multiple runs
 * The Logs tab for every run contains detailed information about the run, including errors, warnings, and debug information
 
-## What does The Ultimate Reddit Scraper do?
+## What does Light-Weight Reddit Scraper do?
 
-**The Ultimate Reddit Scraper** is a **lite-wight** and **high-performance** Apify Actor for crawling Reddit content. It can extract subreddit feeds, post threads, user pages, custom feeds, and custom search URLs, while also collecting nested comments, media links, and detailed post metadata.
+**Light-Weight Reddit Scraper** is a **lite-wight** and **high-performance** Apify Actor for crawling Reddit content. It can extract subreddit feeds, post threads, user pages, custom feeds, and custom search URLs, while also collecting nested comments, media links, and detailed post metadata.
 
 It is built for fast structured extraction and for building datasets you can use in analytics, monitoring, research, archiving, NLP, automation workflows, and content intelligence.
 
-### The Ultimate Reddit Scraper can scrape
+### Light-Weight Reddit Scraper can scrape
 
 * Subreddit feeds and community posts
 * Individual post threads
@@ -66,7 +66,7 @@ You can start the Actor from different kinds of Reddit URLs. The table below exp
 
 ## How to scrape Reddit
 
-It is easy to use **The Ultimate Reddit Scraper**.
+It is easy to use **Light-Weight Reddit Scraper**.
 
 1. Click on **Try for free**
 2. Enter the Reddit URLs you want to scrape
@@ -705,5 +705,5 @@ If you have suggestions, bug reports, or feature requests, feel free to open an 
 
 ## More scrapers
 
-* [The Ultimate News Scraper](https://apify.com/glitch_404/ultimate-news-scraper)
+* [Light-Weight News Scraper](https://apify.com/glitch_404/ultimate-news-scraper)
 * [Investing.com Scraper](https://apify.com/glitch_404/investing-scraper)

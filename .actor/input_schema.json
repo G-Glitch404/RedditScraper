@@ -1,6 +1,6 @@
 {
-  "title": "The Ultimate Reddit Scraper Inputs",
-  "description": "Configure the Reddit Scraper Actor to crawl subreddits, posts, and comment threads from Reddit JSON endpoints",
+  "title": "Light-Weight Reddit Scraper Inputs",
+  "description": "Configure the Reddit Scraper Actor to crawl subreddits, posts, comments sections, or whatever you want from Reddit",
   "type": "object",
   "schemaVersion": 1,
   "properties": {

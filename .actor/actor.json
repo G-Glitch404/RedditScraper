@@ -1,7 +1,7 @@
 {
     "actorSpecification": 1,
-    "name": "the-ultimate-reddit-scrapper",
-    "title": "The Ultimate Reddit Scrapper",
+    "name": "light-weight-reddit-scrapper",
+    "title": "Light-Weight Reddit Scrapper",
     "description": "Scrape thousands of different reddit.com posts, from latest up to months old, all at a lightning speed",
     "buildTag": "latest",
     "version": "1.0",
