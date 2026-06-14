@@ -74,7 +74,7 @@ async def get_actor_inputs(actor) -> dict[str, Any]:
 
     actor_input: dict[str, Any] = await actor.get_input() or {}
 
-    keywords: list[str] = actor_input.get("keywords", ['way', "street", 'work', 'business', 'years'])
+    keywords: list[str] = actor_input.get("keywords", [])
     raw_links: list[dict[str, str]] = actor_input.get("links", []) or []
     proxy: Optional[dict[str, Any]] = actor_input.get("proxyConfiguration", {"useApifyProxy": False})
     max_amount: int = int(actor_input.get("maxPosts", 1000) or 10)
@@ -168,7 +168,7 @@ async def main() -> None:
         if settings["DEEP_CRAWL_COMMENTS_SECTION"]:
             valid_links: list[str] = [link for link in actor_inputs["links"] if '/comments' in link]
             await actor.charge(event_name="deep-crawl")
-            logger.info(f'charged user for deep crawl of {len(valid_links)} posts')
+            logger.info(f'charged user for a deep crawl of {len(valid_links)} posts')
 
         valid_posts: int = 1
         for url in actor_inputs["links"]:
