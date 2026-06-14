@@ -6,7 +6,7 @@
   "properties": {
     "links": {
       "title": "Posts & Feeds URLs",
-      "description": "Add one or more Reddit URLs to crawl.\n - You can use subreddit URLs \n - Users URLs \n - Custom feeds URLs \n - posts URLs.",
+      "description": "Add one or more Reddit URLs to crawl.\n - You can use subreddit URLs \n - Users URLs \n - Custom feeds URLs \n - Custom Search URLs \n - posts URLs.",
       "type": "array",
       "editor": "requestListSources",
       "default": [],
@@ -17,7 +17,7 @@
     "maxPosts": {
       "title": "Maximum posts",
       "type": "integer",
-      "description": "Set the maximum number of Reddit posts the actor should collect. Minimum is 10. Increase this for larger crawls.",
+      "description": "Set the maximum number of Reddit posts the actor should collect. Minimum is 10, and Maximum is 10000. Increase this for larger crawls.",
       "default": 10,
       "editor": "number",
       "prefill": 1000,
@@ -27,7 +27,7 @@
 
     "cookies": {
       "title": "Account cookies (optional)",
-      "description": "Paste a JSON object with authenticated Reddit cookies (loid, reddit_session)\n - if you want to scrape as a logged-in account.\n - might be needed if the actor is now working probably.\n - Example: {\"cookie_name\": \"cookie_value\"}",
+      "description": "Paste a JSON object with authenticated Reddit cookies (loid, reddit_session)\n - if you want to scrape as a logged-in account.\n - might be needed if the actor is now working probably.\n - Example: {\"cookie_name\": \"cookie_value\", \"another_cookie_name\": \"another_cookie_value\"}",
       "type": "object",
       "editor": "json",
       "nullable": true,
@@ -37,14 +37,14 @@
     },
 
     "deepCrawl": {
-      "title": "Deep crawl for comments",
+      "title": "Deep crawl for comments (Charges Extra)",
       "description": "Enable this to crawl full comment trees, including nested replies and hidden comment batches loaded from Reddit's JSON endpoints.",
       "type": "boolean",
       "nullable": false,
       "default": false,
       "prefill": false,
       "sectionCaption": "Comment extraction",
-      "sectionDescription": "Controls whether the actor expands full Reddit comment trees"
+      "sectionDescription": "Controls whether the actor expands and crawl the full post comment section"
     },
     "includeComments": {
       "title": "Include comments - When crawling a post",
