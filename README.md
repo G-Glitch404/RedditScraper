@@ -1,6 +1,6 @@
 # Light-Weight Reddit Scraper
 
-[Open-source](https://github.com/G-Glitch404/RedditScraper) actor to scrape Reddit subreddits, posts, feeds, search results, and comment threads from Reddit JSON endpoints with flexible filtering, media extraction, and structured output.
+[Open-source](https://github.com/G-Glitch404/RedditScraper) actor to scrape Reddit subreddits, posts, feeds, search results, and comment threads with flexible filtering, media extraction, and structured output.
 
 ## Current limitations and downsides of Light-Weight Reddit Scraper
 * I'll do my best fixing all this in the next versions
@@ -12,7 +12,7 @@
 
 ## What does Light-Weight Reddit Scraper do?
 
-**Light-Weight Reddit Scraper** is a **lite-wight** and **high-performance** Apify Actor for crawling Reddit content. It can extract subreddit feeds, post threads, user pages, custom feeds, and custom search URLs, while also collecting nested comments, media links, and detailed post metadata.
+**Light-Weight Reddit Scraper** is a **lite-weight** and **high-performance** Apify Actor for crawling Reddit content. It can extract subreddit feeds, post threads, user pages, custom feeds, and custom search URLs, while also collecting nested comments, media links, and detailed post metadata.
 
 It is built for fast structured extraction and for building datasets you can use in analytics, monitoring, research, archiving, NLP, automation workflows, and content intelligence.
 
