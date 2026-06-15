@@ -142,7 +142,7 @@ def crawl_reddit():
     return jsonify({
         "success": True,
         "url": normalized_url,
-        "result": result,
+        "result": [post.as_dict() for post in result],
     }), 200
 
 

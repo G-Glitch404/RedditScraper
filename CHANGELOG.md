@@ -2,7 +2,7 @@
 
 All notable changes to **The Ultimate Reddit Scraper** will be documented in this file, for all the next releases.
 
-## [1.0.0] - 2026-06-14
+## [1.0.0] - 2026-06-15
 
 ### Added
 - Initial public release of **The Ultimate Reddit Scraper**
@@ -39,4 +39,4 @@ All notable changes to **The Ultimate Reddit Scraper** will be documented in thi
 - max amount of urls can be provided for the actor are 25 urls
 - Future versions will expand crawling reliability, output normalization, and media handling.
 - next version release will include comment's replies crawling
-- cookies might set to be required for later versions so crawling will be account based but happy news reddit won't block any accounts so no need to worry about your account getting banned nor about using a freshly created account
+- cookies might set to be required for later versions so crawling will be account based but happy news Reddit won't block any accounts so no need to worry about your account getting banned nor about using a freshly created account

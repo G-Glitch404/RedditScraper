@@ -5,7 +5,7 @@ from curl_cffi.requests import get
 
 
 def test_api():
-    response = get("http://localhost:9092/api/v1/reddit/crawl?url=https://www.reddit.com/r/technology/&max_amount=15", timeout=120)
+    response = get("http://localhost:9092/api/v1/reddit/crawl?url=https://www.reddit.com/r/technology/&max_amount=15", timeout=30)
     try: response_json: dict[str, Any] = response.json()
     except json.decoder.JSONDecodeError:
         print(response.text)
