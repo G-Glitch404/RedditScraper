@@ -68,8 +68,8 @@ async def push_post(
         if not any(keyword in searchable_text for keyword in keywords):
             return False
 
-    if not include_removed_comments:
-        return False
+    if not include_removed_comments and post_dict["comments"]:
+        post_dict["comments"] = [comment for comment in post_dict.get("comments", []) if not comment.get("is_removed")]
 
     if not include_removed_posts and post_dict.get("is_removed"):
         return False
