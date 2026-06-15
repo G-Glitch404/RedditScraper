@@ -39,7 +39,7 @@ class RedditCrawler:
 
         try: json_response: list[dict[str, Any]] = response.json()
         except json.decoder.JSONDecodeError as e:
-            self.logger.error(f"couldn't scrape post with \n\n e: {str(e)} \n\n url: {reddit_url} \n\n json_url: {json_url} \n\n response_text: {response.text} \n\n response_headers: {response.headers} \n\n request_headers: {response.request.headers}")
+            self.logger.error(f"couldn't scrape post with \n\n e: {str(e)} \n\n url: {reddit_url} \n\n response_text: {response.text} \n\n response_headers: {response.headers} \n\n request_headers: {response.request.headers}")
             return None
 
         self.logger.debug(f"successfully scraped json from url: {reddit_url} ")
