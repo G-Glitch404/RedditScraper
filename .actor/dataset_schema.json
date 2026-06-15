@@ -42,6 +42,7 @@
                     "is_original_content",
                     "is_crosspostable",
                     "is_removed",
+                    "removed",
                     "link",
                     "found_media",
                     "comments"
@@ -233,6 +234,11 @@
                     "is removed": {
                         "label": "is removed",
                         "format": "boolean"
+                    },
+
+                    "removed": {
+                        "label": "removed",
+                        "format": "object"
                     },
 
                     "Link": {

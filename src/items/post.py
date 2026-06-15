@@ -49,7 +49,8 @@ class Post(Item):
     is_video: bool = None
     is_original_content: bool = None
     is_crosspostable: bool = None
-    is_removed: dict[str, Any] = None
+    is_removed: bool = None
+    removed: dict[str, Any] = None
     link: str = None
     found_media: set[str] = None
     comments: list[dict[str, Any]] = None

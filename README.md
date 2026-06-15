@@ -501,48 +501,49 @@ The Actor returns structured Reddit post objects. The table below explains each 
 
 ## Top-level post fields
 
-| Field                      | Type    | Description                                   |
-|----------------------------|---------|-----------------------------------------------|
-| `thumbnail`                | string  | Thumbnail URL for the post, if available      |
-| `post_id`                  | string  | Reddit post ID, usually in `t3_...` format    |
-| `crosspost_parent`         | string  | Parent post reference for crossposts          |
-| `publisher_id`             | string  | Reddit author ID                              |
-| `subreddit_id`             | string  | Subreddit ID                                  |
-| `type`                     | string  | Post type such as image, video, link, or self |
-| `subreddit_type`           | string  | Subreddit visibility type such as public      |
-| `title`                    | string  | Post title                                    |
-| `post_flair`               | string  | Post flair text                               |
-| `publisher`                | string  | Username of the post author                   |
-| `subreddit`                | string  | Subreddit name prefixed with `r/`             |
-| `published_at`             | string  | UTC publication timestamp                     |
-| `body`                     | string  | Post body text for self posts                 |
-| `score`                    | integer | Post score                                    |
-| `upvote_ratio`             | float   | Upvote ratio                                  |
-| `upvotes`                  | integer | Upvotes                                       |
-| `downvotes`                | integer | Downvotes                                     |
-| `total_awards`             | integer | Number of awards received                     |
-| `total_crossposts`         | integer | Crosspost count                               |
-| `total_comments`           | integer | Comment count                                 |
-| `total_subreddit_subs`     | integer | Subreddit subscriber count                    |
-| `is_hidden`                | boolean | Whether the post is hidden                    |
-| `is_crosspost`             | boolean | Whether the post is a crosspost               |
-| `is_pinned`                | boolean | Whether the post is pinned                    |
-| `is_author_premium`        | boolean | Whether the author has premium status         |
-| `is_edited`                | boolean | Whether the post was edited                   |
-| `can_gild`                 | boolean | Whether the post can be gilded                |
-| `is_comments_still_active` | boolean | Whether comments are still open               |
-| `is_score_hidden`          | boolean | Whether the score is hidden                   |
-| `is_over_18`               | boolean | NSFW flag                                     |
-| `is_locked`                | boolean | Whether the post is locked                    |
-| `is_spoiler`               | boolean | Whether the post is marked as spoiler         |
-| `is_gallery`               | boolean | Whether the post is a gallery post            |
-| `is_video`                 | boolean | Whether the post contains video content       |
-| `is_original_content`      | boolean | Whether the post is marked OC                 |
-| `is_crosspostable`         | boolean | Whether the post can be crossposted           |
-| `is_removed`               | object  | Removal or moderation metadata                |
-| `link`                     | string  | Reddit permalink to the post                  |
-| `found_media`              | array   | Extracted media URLs found in the post        |
-| `comments`                 | array   | Extracted comment objects                     |
+| Field                      | Type     | Description                                       |
+|----------------------------|----------|---------------------------------------------------|
+| `thumbnail`                | string   | Thumbnail URL for the post, if available          |
+| `post_id`                  | string   | Reddit post ID, usually in `t3_...` format        |
+| `crosspost_parent`         | string   | Parent post reference for crossposts              |
+| `publisher_id`             | string   | Reddit author ID                                  |
+| `subreddit_id`             | string   | Subreddit ID                                      |
+| `type`                     | string   | Post type such as image, video, link, or self     |
+| `subreddit_type`           | string   | Subreddit visibility type such as public          |
+| `title`                    | string   | Post title                                        |
+| `post_flair`               | string   | Post flair text                                   |
+| `publisher`                | string   | Username of the post author                       |
+| `subreddit`                | string   | Subreddit name prefixed with `r/`                 |
+| `published_at`             | string   | UTC publication timestamp                         |
+| `body`                     | string   | Post body text for self posts                     |
+| `score`                    | integer  | Post score                                        |
+| `upvote_ratio`             | float    | Upvote ratio                                      |
+| `upvotes`                  | integer  | Upvotes                                           |
+| `downvotes`                | integer  | Downvotes                                         |
+| `total_awards`             | integer  | Number of awards received                         |
+| `total_crossposts`         | integer  | Crosspost count                                   |
+| `total_comments`           | integer  | Comment count                                     |
+| `total_subreddit_subs`     | integer  | Subreddit subscriber count                        |
+| `is_hidden`                | boolean  | Whether the post is hidden                        |
+| `is_crosspost`             | boolean  | Whether the post is a crosspost                   |
+| `is_pinned`                | boolean  | Whether the post is pinned                        |
+| `is_author_premium`        | boolean  | Whether the author has premium status             |
+| `is_edited`                | boolean  | Whether the post was edited                       |
+| `can_gild`                 | boolean  | Whether the post can be gilded                    |
+| `is_comments_still_active` | boolean  | Whether comments are still open                   |
+| `is_score_hidden`          | boolean  | Whether the score is hidden                       |
+| `is_over_18`               | boolean  | NSFW flag                                         |
+| `is_locked`                | boolean  | Whether the post is locked                        |
+| `is_spoiler`               | boolean  | Whether the post is marked as spoiler             |
+| `is_gallery`               | boolean  | Whether the post is a gallery post                |
+| `is_video`                 | boolean  | Whether the post contains video content           |
+| `is_original_content`      | boolean  | Whether the post is marked OC                     |
+| `is_crosspostable`         | boolean  | Whether the post can be crossposted               |
+| `is_removed`               | boolean  | Removal or moderation metadata                    |
+| `removed`                  | object   | Moderation metadata about the removal of the post |
+| `link`                     | string   | Reddit permalink to the post                      |
+| `found_media`              | array    | Extracted media URLs found in the post            |
+| `comments`                 | array    | Extracted comment objects                         |
 
 ---
 
@@ -566,6 +567,7 @@ The Actor returns structured Reddit post objects. The table below explains each 
 | `link`               | string          | Reddit permalink to the comment                    |
 | `unrepliable_reason` | string or null  | Reason replies may be restricted                   |
 | `can_send_replies`   | boolean         | Whether replies can be sent                        |
+| `is_removed`         | boolean         | Whether this comment is removed                    |
 | `is_post_comment`    | boolean         | Whether this comment is a top-level post comment   |
 | `is_reply`           | boolean         | Whether this comment is a reply to another comment |
 | `is_score_hidden`    | boolean         | Whether score is hidden                            |
@@ -616,7 +618,8 @@ The Actor returns structured Reddit post objects. The table below explains each 
   "is_video": false,
   "is_original_content": false,
   "is_crosspostable": true,
-  "is_removed": {
+  "is_removed": false,
+  "removed": {
     "num_reports": null,
     "removed_by": null,
     "reason": null,
@@ -645,6 +648,7 @@ The Actor returns structured Reddit post objects. The table below explains each 
       "link": "https://www.reddit.com/r/mildlyinfuriating/comments/1txskkj/resurant_charges_extra_to_take_toppings_off/opy6amm/",
       "unrepliable_reason": null,
       "can_send_replies": true,
+      "is_removed": false,
       "is_post_comment": true,
       "is_reply": false,
       "is_score_hidden": false,

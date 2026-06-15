@@ -88,7 +88,8 @@ class RedditCrawler:
         post_obj["is_spoiler"] = extract(payload, "spoiler")
         post_obj["is_author_premium"] = extract(payload, "author_premium")
 
-        post_obj["is_removed"] = {
+        post_obj["is_removed"] = True if post_obj.get("body", '') == '[removed]' or extract(payload, "author", default='') == '[removed]' else False
+        post_obj["removed"] = {
             "num_reports": extract(payload, "num_reports"),
             "removed_by": extract(payload, "removed_by"),
             "reason": extract(payload, "removal_reason"),
@@ -136,6 +137,7 @@ class RedditCrawler:
         comment["link"] = settings['REDDIT_ENDPOINT'] + permalink if (permalink := extract(raw_comment, "permalink")) and not comment["link"] else None
         comment["can_send_replies"] = extract(raw_comment, "send_replies")
         comment["unrepliable_reason"] = extract(raw_comment, "unrepliable_reason")
+        comment["is_removed"] = True if extract(raw_comment, "selftext") == '[removed]' else False
         comment["is_post_comment"] = extract(raw_comment, "parent_id") == extract(raw_comment, "link_id")
         comment["is_reply"] = False if comment["is_post_comment"] else True
         comment["is_edited"] = extract(raw_comment, "edited")
@@ -352,6 +354,7 @@ class CommentsCrawler:
                 comment["link_id"] = extract(raw_comment, "link") or post_id
                 comment["comment_id"] = extract(raw_comment, "id")
                 comment["body"] = extract(raw_comment, "contentText")
+                comment["is_removed"] = True if comment["body"] == '[removed]' else False
                 comment["link"] = f'{settings["REDDIT_ENDPOINT"]}/{subreddit}/comments/{post_id.split("_", 1)[-1]}/comment/{comment["comment_id"]}'
 
                 if comment["comment_id"] and comment["link_id"]:

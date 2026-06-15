@@ -22,6 +22,7 @@ class Comment(Item):
     link: str = None
     unrepliable_reason: str = None
     can_send_replies: bool = None
+    is_removed: bool = None
     is_post_comment: bool = None
     is_reply: bool = None
     is_score_hidden: bool = None

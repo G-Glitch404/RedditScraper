@@ -54,6 +54,14 @@
       "default": true,
       "prefill": true
     },
+    "includeRemovedComments": {
+      "title": "Include removed comments",
+      "description": "When enabled, the actor will keep removed comments in the output.\n When disabled, removed comments are skipped and filtered out",
+      "type": "boolean",
+      "nullable": false,
+      "default": false,
+      "prefill": false
+    },
 
     "keywords": {
       "title": "Keyword filters",
@@ -65,7 +73,6 @@
       "sectionCaption": "Post filters",
       "sectionDescription": "Use these fields to keep only posts that have the data you care about"
     },
-
     "filterFields": {
       "title": "Filter Fields - Drop posts missing selected fields",
       "description": "Drop any post that does not contain all selected fields. Leave empty to keep all posts.\nExample: selecting body and title will keep only posts that have both fields populated.\n If title or body are missing then the post will be dropped and it won't show up",
@@ -114,6 +121,7 @@
           "is_original_content",
           "is_crosspostable",
           "is_removed",
+          "removed",
           "link",
           "found_media",
           "comments"
@@ -155,6 +163,7 @@
           "Is Video",
           "Original content",
           "Crosspostable",
+          "Is Removed",
           "Removed",
           "Link",
           "Found Media",
@@ -179,6 +188,14 @@
       "nullable": false,
       "default": true,
       "prefill": true
+    },
+    "includeRemovedPosts": {
+      "title": "Include removed posts",
+      "description": "When enabled, the actor will keep removed Reddit posts in the output.\n When disabled, removed posts are skipped and filtered out",
+      "type": "boolean",
+      "nullable": false,
+      "default": false,
+      "prefill": false
     },
 
     "proxyConfiguration": {

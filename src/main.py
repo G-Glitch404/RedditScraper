@@ -25,6 +25,8 @@ async def push_post(
     post: Post,
     filter_fields: Optional[list[str]] = None,
     keywords: Optional[list[str]] = None,
+    include_removed_comments: bool = False,
+    include_removed_posts: bool = False,
 ) -> bool:
     """push a post to apify only when it passes field and keyword filters"""
     def _is_missing(value: Any) -> bool:
@@ -66,6 +68,12 @@ async def push_post(
         if not any(keyword in searchable_text for keyword in keywords):
             return False
 
+    if not include_removed_comments:
+        return False
+
+    if not include_removed_posts and post_dict.get("is_removed"):
+        return False
+
     await actor.push_data(post_dict)
     return True
 
@@ -91,6 +99,8 @@ async def get_actor_inputs(actor) -> dict[str, Any]:
     deep_crawl: bool = actor_input.get("deepCrawl", False)
     include_comments: bool = actor_input.get("includeComments", True)
     include_crossposts: bool = actor_input.get("includeCrossposts", True)
+    include_removed_comments: bool = actor_input.get("includeRemovedComments", False)
+    include_removed_posts: bool = actor_input.get("includeRemovedPosts", False)
     cookies: dict[str, Any] = actor_input.get("cookies", {}) or {}
 
     links: list[str] = [url for link in raw_links if (url := normalize_url(link.get("url")))]
@@ -124,6 +134,8 @@ async def get_actor_inputs(actor) -> dict[str, Any]:
         "filter_fields": filter_fields,
         "deep_crawl": deep_crawl,
         "include_comments": include_comments,
+        "include_removed_comments": include_removed_comments,
+        "include_removed_posts": include_removed_posts,
         "include_crossposts": include_crossposts,
     }
 
@@ -165,6 +177,8 @@ async def main() -> None:
             filter_fields:  {actor_inputs['filter_fields']}
             deep_crawl:  {actor_inputs['deep_crawl']}
             include_comments:  {actor_inputs['include_comments']}
+            include_removed_comments:  {actor_inputs['include_removed_comments']}
+            include_removed_posts:  {actor_inputs['include_removed_posts']}
             include_crossposts:  {actor_inputs['include_crossposts']}
             \n"""
         )
@@ -196,3 +210,4 @@ async def main() -> None:
                     await charge_user(actor, event_name='pushed-result')
 
         logger.info(f"actor pushed & charged user for {valid_posts} valid posts, now actor is finished and exiting...")
+

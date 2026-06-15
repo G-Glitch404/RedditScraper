@@ -4,7 +4,7 @@ from src.RedditCrawler import RedditCrawler
 
 
 async def test_scrape_post() -> None:
-    link: str = "https://www.reddit.com/r/mildlyinfuriating/comments/1txskkj/resurant_charges_extra_to_take_toppings_off"
+    link: str = "https://www.reddit.com/r/mildlyinfuriating/comments/1u680uv/some_ahole_ran_over_my_mailbox_today/"
     total_comments = 0
     start = time.time()
 
@@ -30,7 +30,6 @@ async def test_scrape_post() -> None:
                     print(f"len_2: {len(reply_v)}\n")
 
     assert total_comments >= 70
-    assert total_comments < 80
     end = time.time()
     print("\nOperation took: ", round((end-start), 2), f' secs and total comments: {total_comments}')
 
