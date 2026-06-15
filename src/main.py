@@ -12,6 +12,14 @@ from src.util.utils import normalize_url
 logger = Logger("Control")
 
 
+async def charge_user(actor, event_name: str) -> None:
+    """ charge the user for an event """
+    charge_event = await actor.charge(event_name=event_name)
+    if charge_event.event_charge_limit_reached:
+        logger.warning(f"charge event '{event_name}' limit reached, exiting...")
+        await actor.exit()
+
+
 async def push_post(
     actor,
     post: Post,
@@ -163,12 +171,12 @@ async def main() -> None:
 
         crawler = RedditCrawler()
         actor.log.info("Crawling started - checking is done - charging user for the run")
-        await actor.charge(event_name="actor-run")
+        await charge_user(actor, event_name='actor-run')
 
         if settings["DEEP_CRAWL_COMMENTS_SECTION"]:
             valid_links: list[str] = [link for link in actor_inputs["links"] if '/comments' in link]
-            await actor.charge(event_name="deep-crawl")
             logger.info(f'charged user for a deep crawl of {len(valid_links)} posts')
+            await charge_user(actor, event_name='deep-crawl')
 
         valid_posts: int = 1
         for url in actor_inputs["links"]:
@@ -185,6 +193,6 @@ async def main() -> None:
                     keywords=actor_inputs["keywords"]
                 ):
                     valid_posts += 1
-                    await actor.charge(event_name='pushed-result')
+                    await charge_user(actor, event_name='pushed-result')
 
         logger.info(f"actor pushed & charged user for {valid_posts} valid posts, now actor is finished and exiting...")
