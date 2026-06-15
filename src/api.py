@@ -1,7 +1,7 @@
 import asyncio
 import datetime as dt
 
-from typing import Union, Any, AsyncGenerator
+from typing import Union, Optional, Any
 from urllib.parse import urlparse, urlunparse
 
 from flask import Flask, jsonify, request
@@ -9,11 +9,9 @@ from flask import Flask, jsonify, request
 from src.RedditCrawler import RedditCrawler
 from src.settings import settings
 from src.core.logger import Logger
-from src.items.post import Post
 
 logger = Logger("CrawlerAPI")
 app = Flask(__name__)
-crawler = RedditCrawler()
 
 app.config["JSON_SORT_KEYS"] = False
 ALLOWED_NETLOCS: set[str] = {
@@ -65,11 +63,16 @@ def health():
 @app.get("/api/v1/reddit/crawl")
 def crawl_reddit():
     """ crawl a reddit url and return the crawler result """
-    async def _collect_async_generator(gen: AsyncGenerator) -> list[Any]:
-        """ run and collect an AsyncGenerator object """
-        items = []
-        async for item in gen:
-            items.append(item)
+    async def _crawl_and_collect(
+            _normalized_url: str,
+            _max_amount: int,
+            _stop_date: Optional[dt.datetime] = None
+    ) -> list[dict[str, Any]]:
+        """ crawl a reddit url and return the crawler result """
+        crawler = RedditCrawler()
+        items: list[dict[str, Any]] = []
+        async for post in crawler.crawl(_normalized_url, _max_amount, _stop_date):
+            items.append(post.as_dict())
         return items
 
     loid_cookie: str = request.args.get("loid", "").strip()
@@ -128,8 +131,7 @@ def crawl_reddit():
 
     logger.debug(f"crawling link:  {url}  with max_amount:  {max_amount}")
 
-    result: AsyncGenerator[Post, None] = crawler.crawl(normalized_url, max_amount, stop_date or None)
-    result: list[Post] = asyncio.run(_collect_async_generator(result))
+    result = asyncio.run(_crawl_and_collect(normalized_url, max_amount, stop_date))
     if not result:
         return jsonify(
             {
@@ -142,7 +144,7 @@ def crawl_reddit():
     return jsonify({
         "success": True,
         "url": normalized_url,
-        "result": [post.as_dict() for post in result],
+        "result": result,
     }), 200
 
 
