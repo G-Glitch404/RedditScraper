@@ -1,12 +1,15 @@
 import json
 import time
+import pytest
+
 from src.RedditCrawler import RedditCrawler
 
 
+@pytest.mark.asyncio
 async def test_scrape_post() -> None:
     link: str = "https://www.reddit.com/r/mildlyinfuriating/comments/1u680uv/some_ahole_ran_over_my_mailbox_today/"
-    total_comments = 0
-    start = time.time()
+    total_comments: int = 0
+    start: float = time.time()
 
     crawler = RedditCrawler()
     async for post in crawler.crawl(link):
@@ -30,10 +33,5 @@ async def test_scrape_post() -> None:
                     print(f"len_2: {len(reply_v)}\n")
 
     assert total_comments >= 70
-    end = time.time()
+    end: float = time.time()
     print("\nOperation took: ", round((end-start), 2), f' secs and total comments: {total_comments}')
-
-
-if __name__ == '__main__':
-    import asyncio
-    asyncio.run(test_scrape_post())

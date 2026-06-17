@@ -1,11 +1,14 @@
+import pytest
 import time
+
 from src.RedditCrawler import RedditCrawler
 
 
+@pytest.mark.asyncio
 async def test_scrape_comment() -> None:
     link: str = ""
-    total_comments = 0
-    start = time.time()
+    total_comments: int = 0
+    start: float = time.time()
 
     crawler = RedditCrawler()
     async for post in crawler.crawl(link):
@@ -27,5 +30,5 @@ async def test_scrape_comment() -> None:
                     print(f"len_2: {len(reply_v)}\n")
 
     assert total_comments >= 1
-    end = time.time()
+    end: float = time.time()
     print("\nOperation took: ", round((end-start), 2), f' secs and total comments: {total_comments}')

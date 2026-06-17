@@ -137,7 +137,7 @@ def crawl_reddit():
             {
                 "success": False,
                 "error": "error - something is wrong with the crawler, it did not provide any results.",
-                "url": normalized_url,
+                "url": normalized_url.replace(".json", ""),
             }
         ), 501
 

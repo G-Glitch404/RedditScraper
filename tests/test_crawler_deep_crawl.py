@@ -1,9 +1,11 @@
-from src.settings import settings
-
+import pytest
 import time
+
+from src.settings import settings
 from src.RedditCrawler import RedditCrawler
 
 
+@pytest.mark.asyncio
 async def test_scrape_post() -> None:
     link: str = ""
     total_comments = 0
