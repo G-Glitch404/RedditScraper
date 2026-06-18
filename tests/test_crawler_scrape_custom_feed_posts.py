@@ -14,7 +14,7 @@ async def test_scrape_post() -> None:
     start: float = time.time()
 
     crawler = RedditCrawler()
-    posts: list[dict[str, Any]] = []
+    posts: list[dict] = []
     async for post in crawler.crawl(link):
         total_posts += 1
         for k, v in post:

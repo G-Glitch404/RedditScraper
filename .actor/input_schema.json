@@ -10,6 +10,7 @@
       "type": "array",
       "editor": "requestListSources",
       "default": [],
+      "prefill": ["https://www.reddit.com/r/mildlyinfuriating"],
       "minItems": 1,
       "maxItems": 100
     },
@@ -22,7 +23,7 @@
       "editor": "number",
       "prefill": 10,
       "maximum": 10000,
-      "minimum": 10
+      "minimum": 1
     },
 
     "cookies": {
