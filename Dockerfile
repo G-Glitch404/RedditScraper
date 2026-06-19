@@ -47,4 +47,4 @@ ENTRYPOINT ["/usr/bin/tini", "--"]
 
 EXPOSE 9092
 
-CMD ["gunicorn", "-b", "0.0.0.0:9092", "src.api:app"]
+CMD ["gunicorn", "-b", "0.0.0.0:9092", "-k", "gthread", "--workers", "8", "--threads", "2", "--timeout", "300", "src.api:app"]

@@ -31,10 +31,12 @@ class RedditCrawler:
             self,
             reddit_url: str,
             next_pagination: Optional[dict[str, str]] = None,
+            limit: Optional[int] = None,
     ) -> Union[list[dict[str, Any]], dict[str, Any], None]:
         """ fetch raw reddit JSON from a url """
         json_url: str = normalize_url(reddit_url)
         if next_pagination: json_url = json_url + f'?after={next_pagination["after"]}'
+        if limit: json_url = json_url + f'?limit={limit}'
         response = await self.session.get(json_url)
 
         try: json_response: list[dict[str, Any]] = response.json()
@@ -217,7 +219,7 @@ class RedditCrawler:
     ) -> AsyncGenerator[Post, None]:
         """ main function to initiate the full crawl pipeline """
         async def _request_fetch_json(_reddit_url: str, _next_pagination: dict = None) -> Union[dict[str, Any], list[dict[str, Any]], None]:
-            _reddit_payload: Union[dict[str, Any], list[dict[str, Any]]] = await self.fetch_json(_reddit_url, _next_pagination)
+            _reddit_payload: Union[dict[str, Any], list[dict[str, Any]]] = await self.fetch_json(_reddit_url, _next_pagination, limit=100)
             if _reddit_payload is None:
                 self.logger.error(f'failed to fetch json from url: {reddit_url}  -  payload is None, probably 429 too many requests, stopping now...')
                 self.logger.error(f'if the reason is rate limiting you will have to wait for 10 mins before you can crawl with the same account (cookies)')
