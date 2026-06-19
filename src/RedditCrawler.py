@@ -251,7 +251,7 @@ class RedditCrawler:
 
         elif len(url_path) >= 1:  # scraping a subreddit/user/custom_feed (with amount limitations)
             if (not isinstance(max_amount, int)) or (max_amount > settings['MAX_AMOUNT_LIMIT']):
-                self.logger.warning(f"max_amount is malformed resetting it from ({type(max_amount)}, {max_amount}) to (int, {settings['MAX_AMOUNT_LIMIT']})")
+                self.logger.warning(f"max_amount is malformed or exceeding the allowed limit '{settings['MAX_AMOUNT_LIMIT']}', resetting it from ({type(max_amount)}, {max_amount}) to (int, {settings['MAX_AMOUNT_LIMIT']})")
                 max_amount: int = settings["MAX_AMOUNT_LIMIT"]
 
             self.logger.info(f"detected a large operation url, initiated scraping from a group response with   Link: {reddit_url}   max_amount: '{max_amount}'")

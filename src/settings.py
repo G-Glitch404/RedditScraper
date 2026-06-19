@@ -18,7 +18,7 @@ settings = {
     "API_PORT": int(os.environ.get("PORT", 9092)),
     "CPU_CORES": cpu_count(),
 
-    "MAX_AMOUNT_LIMIT": 1_000,
+    "MAX_AMOUNT_LIMIT": 10_000,
     "STOP_DATE": None,
     "REDDIT_LOID_COOKIE": os.environ.get("REDDIT_LOID_COOKIE"),
     "REDDIT_SESSION_COOKIE": os.environ.get("REDDIT_SESSION_COOKIE"),
