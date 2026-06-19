@@ -35,10 +35,12 @@ class RedditCrawler:
     ) -> Union[list[dict[str, Any]], dict[str, Any], None]:
         """ fetch raw reddit JSON from a url """
         json_url: str = normalize_url(reddit_url)
-        if next_pagination: json_url = json_url + f'?after={next_pagination["after"]}'
-        if limit: json_url = json_url + f'?limit={limit}'
-        response = await self.session.get(json_url)
 
+        params: dict[str, Any] = {}
+        if next_pagination: params["after"] = next_pagination["after"]
+        if limit: params["limit"] = limit
+
+        response = await self.session.get(json_url, params=params)
         try: json_response: list[dict[str, Any]] = response.json()
         except json.decoder.JSONDecodeError as e:
             self.logger.error(f"couldn't scrape post with \n\n e: {str(e)} \n\n url: {reddit_url} \n\n response_text: {response.text} \n\n response_headers: {response.headers} \n\n request_headers: {response.request.headers}")
