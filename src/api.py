@@ -85,7 +85,7 @@ def crawl_reddit():
 
     if all([loid_cookie, reddit_session]):
         settings["REDDIT_LOID_COOKIE"] = loid_cookie
-        settings["REDDIT_SESSION_COOKIE"] = loid_cookie
+        settings["REDDIT_SESSION_COOKIE"] = reddit_session
 
         logger.debug(f"set and using custom user cookies")
     else:
