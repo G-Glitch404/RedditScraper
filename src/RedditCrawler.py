@@ -96,8 +96,8 @@ class RedditCrawler:
         post_obj["is_removed"] = True if post_obj.get("body", '') == '[removed]' or extract(payload, "author", default='') == '[removed]' else False
 
         if not post_obj["is_removed"]:
-            article_text: str = f'{post_obj["title"]}\n{post_obj["body"]}'
-            sentiment_score: float = self.sentiment_analyzer.polarity_scores(article_text)["compound"]
+            _text: str = f'{post_obj["title"]}\n{post_obj["body"]}'
+            sentiment_score: float = self.sentiment_analyzer.polarity_scores(_text)["compound"]
 
             post_obj["sentiment_score"] = sentiment_score
             if sentiment_score > 0.1: post_obj["sentiment"] = "positive"
@@ -132,8 +132,7 @@ class RedditCrawler:
 
         return post_obj
 
-    @staticmethod
-    async def _parse_comment(raw_comment: dict[str, Any]) -> Comment:
+    async def _parse_comment(self, raw_comment: dict[str, Any]) -> Comment:
         comment = Comment()
 
         comment["author"] = extract(raw_comment, "author")
@@ -158,6 +157,14 @@ class RedditCrawler:
         comment["is_edited"] = extract(raw_comment, "edited")
         comment["is_author_blocked"] = extract(raw_comment, "author_is_blocked")
         comment["published_at"] = dt.datetime.fromtimestamp(timestamp, tz=dt.timezone.utc) if (timestamp := extract(raw_comment, "created_utc")) else None
+
+        if not comment["is_removed"]:
+            sentiment_score: float = self.sentiment_analyzer.polarity_scores(comment["body"])["compound"]
+
+            comment["sentiment_score"] = sentiment_score
+            if sentiment_score > 0.1: comment["sentiment"] = "positive"
+            elif sentiment_score < -0.1: comment["sentiment"] = "negative"
+            else: comment["sentiment"] = "neutral"
 
         # Feature disabled until future updates
         # comment["replies"] = []  # storing the replies here for later, so we don't get rate limited while crawling

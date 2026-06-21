@@ -13,6 +13,8 @@ class Comment(Item):
     link_id: str = None
     subreddit_id: str = None
     subreddit: str = None
+    sentiment: str = None
+    sentiment_score: int = None
     score: int = None
     upvotes: int = None
     downvotes: int = None
