@@ -26,6 +26,8 @@ class Post(Item):
     subreddit: str = None
     published_at: dt.datetime = None
     body: str = None
+    sentiment: str = None
+    sentiment_score: float = None
     score: int = None
     upvote_ratio: int = None
     upvotes: int = None

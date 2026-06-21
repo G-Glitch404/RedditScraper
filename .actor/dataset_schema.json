@@ -18,6 +18,8 @@
                     "subreddit",
                     "published_at",
                     "body",
+                    "sentiment",
+                    "sentiment_score",
                     "score",
                     "upvote_ratio",
                     "upvotes",
@@ -114,6 +116,16 @@
                     "Body": {
                         "label": "Body",
                         "format": "text"
+                    },
+
+                    "Sentiment": {
+                        "label": "Sentiment",
+                        "format": "integer"
+                    },
+
+                    "Sentiment Score": {
+                        "label": "Sentiment Score",
+                        "format": "integer"
                     },
 
                     "Score": {

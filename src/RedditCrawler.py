@@ -5,6 +5,7 @@ import urllib.parse
 import json.decoder
 
 from typing import Union, Optional, Any, Coroutine, AsyncGenerator
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 from src.core.session import Session
 from src.settings import settings
@@ -18,6 +19,7 @@ class RedditCrawler:
     def __init__(self):
         self.session = Session()
         self.logger = Logger("RedditCrawler")
+        self.sentiment_analyzer = SentimentIntensityAnalyzer()
 
         self.session.headers.update({
             "Cookie": f"loid={settings['REDDIT_LOID_COOKIE']}; "
@@ -59,8 +61,7 @@ class RedditCrawler:
 
         return post_obj
 
-    @staticmethod
-    async def _parse_post(post_obj: Post, payload: dict[str, Any]) -> Post:
+    async def _parse_post(self, post_obj: Post, payload: dict[str, Any]) -> Post:
         """ parse post level data from a reddit payload """
         post_obj["thumbnail"] = extract(payload, "media", "oembed", "thumbnail_url")
         post_obj["crosspost_parent"] = extract(payload, "crosspost_parent")
@@ -93,6 +94,16 @@ class RedditCrawler:
         post_obj["is_author_premium"] = extract(payload, "author_premium")
 
         post_obj["is_removed"] = True if post_obj.get("body", '') == '[removed]' or extract(payload, "author", default='') == '[removed]' else False
+
+        if not post_obj["is_removed"]:
+            article_text: str = f'{post_obj["title"]}\n{post_obj["body"]}'
+            sentiment_score: float = self.sentiment_analyzer.polarity_scores(article_text)["compound"]
+
+            post_obj["sentiment_score"] = sentiment_score
+            if sentiment_score > 0.1: post_obj["sentiment"] = "positive"
+            elif sentiment_score < -0.1: post_obj["sentiment"] = "negative"
+            else: post_obj["sentiment"] = "neutral"
+
         post_obj["removed"] = {
             "num_reports": extract(payload, "num_reports"),
             "removed_by": extract(payload, "removed_by"),

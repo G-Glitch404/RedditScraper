@@ -7,6 +7,7 @@ All notable changes to **Light-Weight Reddit Scraper** will be documented in thi
 ### Added
 - Initial public release of **Light-Weight Reddit Scraper**
 - Support for scraping subreddits URLs, posts URLs, users URLs, and custom feeds URLs, and search URLs with all of Reddit's filters can be applied 
+- sentiment analysis for posts and comments
 - Deep crawling feature for scraping a post's comments section when providing a post url
 - Keyword filtering for post selection
 - Field-based filtering for output control

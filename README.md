@@ -1,6 +1,6 @@
 # Light-Weight Reddit Scraper
 
-[Open-source](https://github.com/G-Glitch404/RedditScraper) actor to scrape Reddit subreddits, posts, feeds, search results, and comment threads with flexible filtering, media extraction, and structured output.
+[Open-source](https://github.com/G-Glitch404/RedditScraper) actor to scrape Reddit subreddits, posts, feeds, search results, and comment threads with flexible filtering, media extraction, and structured output, all with built-in sentiment analysis system.
 
 ## Current limitations and downsides of Light-Weight Reddit Scraper
 * I'll do my best fixing all this in the next versions
@@ -12,7 +12,7 @@
 
 ## What does Light-Weight Reddit Scraper do?
 
-**Light-Weight Reddit Scraper** is a **lite-weight** and **high-performance** Apify Actor for crawling Reddit content. It can extract subreddit feeds, post threads, user pages, custom feeds, and custom search URLs, while also collecting nested comments, media links, and detailed post metadata.
+**Light-Weight Reddit Scraper** is a **lite-weight** and **high-performance** Apify Actor for crawling Reddit content. It can extract subreddit feeds, post threads, user pages, custom feeds, and custom search URLs, while also collecting nested comments, media links, and detailed post metadata, with build-in sentiment analysis support.
 
 It is built for fast structured extraction and for building datasets you can use in analytics, monitoring, research, archiving, NLP, automation workflows, and content intelligence.
 
@@ -501,80 +501,84 @@ The Actor returns structured Reddit post objects. The table below explains each 
 
 ## Top-level post fields
 
-| Field                      | Type     | Description                                       |
-|----------------------------|----------|---------------------------------------------------|
-| `thumbnail`                | string   | Thumbnail URL for the post, if available          |
-| `post_id`                  | string   | Reddit post ID, usually in `t3_...` format        |
-| `crosspost_parent`         | string   | Parent post reference for crossposts              |
-| `publisher_id`             | string   | Reddit author ID                                  |
-| `subreddit_id`             | string   | Subreddit ID                                      |
-| `type`                     | string   | Post type such as image, video, link, or self     |
-| `subreddit_type`           | string   | Subreddit visibility type such as public          |
-| `title`                    | string   | Post title                                        |
-| `post_flair`               | string   | Post flair text                                   |
-| `publisher`                | string   | Username of the post author                       |
-| `subreddit`                | string   | Subreddit name prefixed with `r/`                 |
-| `published_at`             | string   | UTC publication timestamp                         |
-| `body`                     | string   | Post body text for self posts                     |
-| `score`                    | integer  | Post score                                        |
-| `upvote_ratio`             | float    | Upvote ratio                                      |
-| `upvotes`                  | integer  | Upvotes                                           |
-| `downvotes`                | integer  | Downvotes                                         |
-| `total_awards`             | integer  | Number of awards received                         |
-| `total_crossposts`         | integer  | Crosspost count                                   |
-| `total_comments`           | integer  | Comment count                                     |
-| `total_subreddit_subs`     | integer  | Subreddit subscriber count                        |
-| `is_hidden`                | boolean  | Whether the post is hidden                        |
-| `is_crosspost`             | boolean  | Whether the post is a crosspost                   |
-| `is_pinned`                | boolean  | Whether the post is pinned                        |
-| `is_author_premium`        | boolean  | Whether the author has premium status             |
-| `is_edited`                | boolean  | Whether the post was edited                       |
-| `can_gild`                 | boolean  | Whether the post can be gilded                    |
-| `is_comments_still_active` | boolean  | Whether comments are still open                   |
-| `is_score_hidden`          | boolean  | Whether the score is hidden                       |
-| `is_over_18`               | boolean  | NSFW flag                                         |
-| `is_locked`                | boolean  | Whether the post is locked                        |
-| `is_spoiler`               | boolean  | Whether the post is marked as spoiler             |
-| `is_gallery`               | boolean  | Whether the post is a gallery post                |
-| `is_video`                 | boolean  | Whether the post contains video content           |
-| `is_original_content`      | boolean  | Whether the post is marked OC                     |
-| `is_crosspostable`         | boolean  | Whether the post can be crossposted               |
-| `is_removed`               | boolean  | Removal or moderation metadata                    |
-| `removed`                  | object   | Moderation metadata about the removal of the post |
-| `link`                     | string   | Reddit permalink to the post                      |
-| `found_media`              | array    | Extracted media URLs found in the post            |
-| `comments`                 | array    | Extracted comment objects                         |
+| Field                      | Type    | Description                                                         |
+|----------------------------|---------|---------------------------------------------------------------------|
+| `thumbnail`                | string  | Thumbnail URL for the post, if available                            |
+| `post_id`                  | string  | Reddit post ID, usually in `t3_...` format                          |
+| `crosspost_parent`         | string  | Parent post reference for crossposts                                |
+| `publisher_id`             | string  | Reddit author ID                                                    |
+| `subreddit_id`             | string  | Subreddit ID                                                        |
+| `type`                     | string  | Post type such as image, video, link, or self                       |
+| `subreddit_type`           | string  | Subreddit visibility type such as public                            |
+| `title`                    | string  | Post title                                                          |
+| `post_flair`               | string  | Post flair text                                                     |
+| `publisher`                | string  | Username of the post author                                         |
+| `subreddit`                | string  | Subreddit name prefixed with `r/`                                   |
+| `published_at`             | string  | UTC publication timestamp                                           |
+| `body`                     | string  | Post body text for self posts                                       |
+| `sentiment`                | string  | sentiment analysis score either "positive", "negative" or "neutral" |
+| `sentiment_score`          | integer | sentiment analysis score a float between (1, -1)                    |
+| `score`                    | integer | Post score (upvotes - downvotes)                                    |
+| `upvote_ratio`             | float   | Upvote ratio                                                        |
+| `upvotes`                  | integer | Upvotes                                                             |
+| `downvotes`                | integer | Downvotes                                                           |
+| `total_awards`             | integer | Number of awards received                                           |
+| `total_crossposts`         | integer | Crosspost count                                                     |
+| `total_comments`           | integer | Comment count                                                       |
+| `total_subreddit_subs`     | integer | Subreddit subscriber count                                          |
+| `is_hidden`                | boolean | Whether the post is hidden                                          |
+| `is_crosspost`             | boolean | Whether the post is a crosspost                                     |
+| `is_pinned`                | boolean | Whether the post is pinned                                          |
+| `is_author_premium`        | boolean | Whether the author has premium status                               |
+| `is_edited`                | boolean | Whether the post was edited                                         |
+| `can_gild`                 | boolean | Whether the post can be gilded                                      |
+| `is_comments_still_active` | boolean | Whether comments are still open                                     |
+| `is_score_hidden`          | boolean | Whether the score is hidden                                         |
+| `is_over_18`               | boolean | NSFW flag                                                           |
+| `is_locked`                | boolean | Whether the post is locked                                          |
+| `is_spoiler`               | boolean | Whether the post is marked as spoiler                               |
+| `is_gallery`               | boolean | Whether the post is a gallery post                                  |
+| `is_video`                 | boolean | Whether the post contains video content                             |
+| `is_original_content`      | boolean | Whether the post is marked OC                                       |
+| `is_crosspostable`         | boolean | Whether the post can be crossposted                                 |
+| `is_removed`               | boolean | Removal or moderation metadata                                      |
+| `removed`                  | object  | Moderation metadata about the removal of the post                   |
+| `link`                     | string  | Reddit permalink to the post                                        |
+| `found_media`              | array   | Extracted media URLs found in the post                              |
+| `comments`                 | array   | Extracted comment objects                                           |
 
 ---
 
 ## Comment fields
 
-| Field                | Type            | Description                                        |
-|----------------------|-----------------|----------------------------------------------------|
-| `author`             | string          | Comment author username                            |
-| `author_id`          | string          | Comment author ID                                  |
-| `parent_id`          | string          | Parent comment or post ID                          |
-| `comment_id`         | string          | Reddit comment ID, usually in `t1_...` format      |
-| `link_id`            | string          | Reddit post ID this comment belongs to             |
-| `subreddit_id`       | string          | Subreddit ID                                       |
-| `subreddit`          | string          | Subreddit name prefixed with `r/`                  |
-| `score`              | integer         | Comment score                                      |
-| `upvotes`            | integer         | Upvotes                                            |
-| `downvotes`          | integer         | Downvotes                                          |
-| `upvotes_ratio`      | integer or null | Upvote ratio when available                        |
-| `type`               | string or null  | Comment type when available                        |
-| `body`               | string          | Comment text                                       |
-| `link`               | string          | Reddit permalink to the comment                    |
-| `unrepliable_reason` | string or null  | Reason replies may be restricted                   |
-| `can_send_replies`   | boolean         | Whether replies can be sent                        |
-| `is_removed`         | boolean         | Whether this comment is removed                    |
-| `is_post_comment`    | boolean         | Whether this comment is a top-level post comment   |
-| `is_reply`           | boolean         | Whether this comment is a reply to another comment |
-| `is_score_hidden`    | boolean         | Whether score is hidden                            |
-| `is_over_18`         | boolean or null | NSFW flag when present                             |
-| `is_edited`          | boolean         | Whether the comment was edited                     |
-| `is_author_blocked`  | boolean         | Whether the author is blocked                      |
-| `published_at`       | string          | UTC timestamp for the comment                      |
+| Field                | Type            | Description                                                         |
+|----------------------|-----------------|---------------------------------------------------------------------|
+| `author`             | string          | Comment author username                                             |
+| `author_id`          | string          | Comment author ID                                                   |
+| `parent_id`          | string          | Parent comment or post ID                                           |
+| `comment_id`         | string          | Reddit comment ID, usually in `t1_...` format                       |
+| `link_id`            | string          | Reddit post ID this comment belongs to                              |
+| `subreddit_id`       | string          | Subreddit ID                                                        |
+| `subreddit`          | string          | Subreddit name prefixed with `r/`                                   |
+| `sentiment`          | string          | sentiment analysis score either "positive", "negative" or "neutral" |
+| `sentiment_score`    | integer         | sentiment analysis score a float between (1, -1)                    |
+| `score`              | integer         | Comment score                                                       |
+| `upvotes`            | integer         | Upvotes                                                             |
+| `downvotes`          | integer         | Downvotes                                                           |
+| `upvotes_ratio`      | integer or null | Upvote ratio when available                                         |
+| `type`               | string or null  | Comment type when available                                         |
+| `body`               | string          | Comment text                                                        |
+| `link`               | string          | Reddit permalink to the comment                                     |
+| `unrepliable_reason` | string or null  | Reason replies may be restricted                                    |
+| `can_send_replies`   | boolean         | Whether replies can be sent                                         |
+| `is_removed`         | boolean         | Whether this comment is removed                                     |
+| `is_post_comment`    | boolean         | Whether this comment is a top-level post comment                    |
+| `is_reply`           | boolean         | Whether this comment is a reply to another comment                  |
+| `is_score_hidden`    | boolean         | Whether score is hidden                                             |
+| `is_over_18`         | boolean or null | NSFW flag when present                                              |
+| `is_edited`          | boolean         | Whether the comment was edited                                      |
+| `is_author_blocked`  | boolean         | Whether the author is blocked                                       |
+| `published_at`       | string          | UTC timestamp for the comment                                       |
 
 ---
 
@@ -595,7 +599,8 @@ The Actor returns structured Reddit post objects. The table below explains each 
   "subreddit": "r/mildlyinfuriating",
   "published_at": "2026-06-05T18:04:26+00:00",
   "body": null,
-  "score": 20487,
+  "sentiment": "neutral",
+  "sentiment_score": 0.1, 
   "upvote_ratio": 0.95,
   "upvotes": 20487,
   "downvotes": 0,
@@ -639,6 +644,8 @@ The Actor returns structured Reddit post objects. The table below explains each 
       "link_id": "t3_1txskkj",
       "subreddit_id": "t5_2ubgg",
       "subreddit": "r/mildlyinfuriating",
+      "sentiment": "neutral",
+      "sentiment_score": 0.1, 
       "score": 2735,
       "upvotes": 2735,
       "downvotes": 0,
@@ -709,5 +716,5 @@ If you have suggestions, bug reports, or feature requests, feel free to open an 
 
 ## More scrapers
 
-* [Light-Weight News Scraper](https://apify.com/glitch_404/ultimate-news-scraper)
+* [The Ultimate News Scraper](https://apify.com/glitch_404/ultimate-news-scraper)
 * [Investing.com Scraper](https://apify.com/glitch_404/investing-scraper)
