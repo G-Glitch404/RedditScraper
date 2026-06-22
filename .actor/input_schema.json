@@ -9,8 +9,9 @@
       "description": "Add one or more Reddit URLs to crawl. (Maximum is 100 URLs) \n - You can use subreddit URLs \n - Users URLs \n - Custom feeds URLs \n - Custom Search URLs \n - Posts URLs.",
       "type": "array",
       "editor": "requestListSources",
-      "default": [],
+      "default": ["https://www.reddit.com/r/mildlyinfuriating/"],
       "prefill": ["https://www.reddit.com/r/mildlyinfuriating"],
+      "nullable": false,
       "minItems": 1,
       "maxItems": 100
     },
@@ -52,7 +53,7 @@
       "description": "When enabled, the actor will crawl and return comments with the post, disable it and you won't get any comments with any post at all\nComments are not available when crawling a feed for an amount of posts and this behaviour can't be changed comments can only be crawled for every post link that is provided",
       "type": "boolean",
       "nullable": false,
-      "default": true,
+      "default": false,
       "prefill": true
     },
     "includeRemovedComments": {
