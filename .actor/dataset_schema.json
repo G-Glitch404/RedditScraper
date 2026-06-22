@@ -120,7 +120,7 @@
 
                     "Sentiment": {
                         "label": "Sentiment",
-                        "format": "integer"
+                        "format": "text"
                     },
 
                     "Sentiment Score": {
