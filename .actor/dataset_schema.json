@@ -128,8 +128,8 @@
                         "format": "integer"
                     },
 
-                    "Score": {
-                        "label": "Score",
+                    "Post Score": {
+                        "label": "Post Score",
                         "format": "integer"
                     },
 
