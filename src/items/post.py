@@ -76,3 +76,8 @@ class Post(Item):
         )
 
         return status
+
+    def __add__(self, other):
+        return Post(
+            **{**dc.asdict(self), **dc.asdict(other)}
+        )
