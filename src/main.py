@@ -33,14 +33,11 @@ async def push_post(
         return value is None or value == "" or value == [] or value == {} or value == ()
 
     def _collect_text(value: Any) -> str:
-        if value is None:
-            return ""
-        if isinstance(value, str):
-            return value
-        if isinstance(value, dict):
-            return " ".join(_collect_text(v) for v in value.values())
-        if isinstance(value, (list, tuple, set)):
-            return " ".join(_collect_text(v) for v in value)
+        if value is None: return ""
+        if isinstance(value, str): return value
+        if isinstance(value, dict): return " ".join(_collect_text(v) for v in value.values())
+        if isinstance(value, (list, tuple, set)): return " ".join(_collect_text(v) for v in value)
+
         return str(value)
 
     post_dict: dict[str, Any] = post.as_dict()
