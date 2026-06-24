@@ -41,16 +41,16 @@ async def push_post(
         return str(value)
 
     post_dict: dict[str, Any] = post.as_dict()
-    filter_fields = filter_fields or []
-    keywords = [k.strip().lower() for k in (keywords or []) if k and k.strip()]
+    filter_fields: list[str] = filter_fields or []
+    keywords: list[str] = [k.strip().lower() for k in (keywords or []) if k and k.strip()]
 
     if filter_fields:
         for field in filter_fields:
-            if _is_missing(post_dict.get(field)):
-                return False
+            if not _is_missing(post_dict.get(field)): continue
+            return False
 
     if keywords:
-        searchable_text = _collect_text(
+        searchable_text: str = _collect_text(
             {
                 "title": post_dict.get("title"),
                 "body": post_dict.get("body"),
@@ -80,9 +80,9 @@ async def get_actor_inputs(actor) -> dict[str, Any]:
     def _parse_stop_date(value: Optional[str]) -> Optional[dt.datetime]:
         """ parse the actor stop date into utc datetime """
         if not value: return None
-        parsed = dt.datetime.fromisoformat(value)
+        parsed: dt.datetime = dt.datetime.fromisoformat(value)
         if parsed.tzinfo is None:
-            parsed = parsed.replace(tzinfo=dt.timezone.utc)
+            parsed: dt.datetime = parsed.replace(tzinfo=dt.timezone.utc)
         return parsed.astimezone(dt.timezone.utc)
 
     actor_input: dict[str, Any] = await actor.get_input() or {}
@@ -103,7 +103,7 @@ async def get_actor_inputs(actor) -> dict[str, Any]:
     links: list[str] = [url for link in raw_links if (url := normalize_url(link.get("url")))]
     if proxy == {"useApifyProxy": False}:
         logger.debug("Proxies are disabled, None will be used.")
-        proxy = None
+        proxy: Optional[dict] = None
 
     stop_date: dt.datetime = _parse_stop_date(stop_date_raw)
 

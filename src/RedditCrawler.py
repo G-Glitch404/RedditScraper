@@ -26,7 +26,7 @@ class RedditCrawler:
                       f"reddit_session={settings['REDDIT_SESSION_COOKIE']}",
         })
 
-        self.comments_crawler = CommentsCrawler(self.session, self.logger)
+        self.comments_crawler = CommentsCrawler(self.session, self.logger, self.sentiment_analyzer)
         self.logger.info("Crawler initialized successfully")
 
     async def fetch_json(
@@ -323,9 +323,10 @@ class RedditCrawler:
 
 
 class CommentsCrawler:
-    def __init__(self, session: Session, logger: Logger):
+    def __init__(self, session: Session, logger: Logger, sentiment_analyzer: SentimentIntensityAnalyzer):
         self.session = session
         self.logger = logger
+        self.sentiment_analyzer = sentiment_analyzer
 
     async def _fetch_comment_sec(
             self,
@@ -366,7 +367,7 @@ class CommentsCrawler:
 
         for idx in range(0, len(children_nodes), 99):
             node: list[str] = children_nodes[idx: idx + 99]
-            comments_batch = await self._fetch_comment_sec(post_id, node)
+            comments_batch: list[dict[str, Any]] = await self._fetch_comment_sec(post_id, node)
 
             for raw_comment in comments_batch:
                 comment = Comment()
@@ -378,6 +379,14 @@ class CommentsCrawler:
                 comment["body"] = extract(raw_comment, "contentText")
                 comment["is_removed"] = True if comment["body"] == '[removed]' else False
                 comment["link"] = f'{settings["REDDIT_ENDPOINT"]}/{subreddit}/comments/{post_id.split("_", 1)[-1]}/comment/{comment["comment_id"]}'
+
+                if not comment["is_removed"]:
+                    sentiment_score: float = self.sentiment_analyzer.polarity_scores(comment["body"])["compound"]
+
+                    comment["sentiment_score"] = sentiment_score
+                    if sentiment_score > 0.1: comment["sentiment"] = "positive"
+                    elif sentiment_score < -0.1: comment["sentiment"] = "negative"
+                    else: comment["sentiment"] = "neutral"
 
                 if comment["comment_id"] and comment["link_id"]:
                     yield comment
