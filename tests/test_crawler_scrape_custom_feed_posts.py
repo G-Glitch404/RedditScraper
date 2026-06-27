@@ -1,21 +1,20 @@
 import json
 import time
 import pytest
+import datetime as dt
 
 from src.RedditCrawler import RedditCrawler
-from src.settings import settings
 
 
 @pytest.mark.asyncio
 async def test_scrape_post() -> None:
     link: str = ""
     total_posts: int = 0
-    settings["MAX_AMOUNT_LIMIT"] = 1500
     start: float = time.time()
 
     crawler = RedditCrawler()
     posts: list[dict] = []
-    async for post in crawler.crawl(link):
+    async for post in crawler.crawl(link, max_amount=5000, stop_date=dt.datetime.now(tz=dt.timezone.utc) - dt.timedelta(days=31)):
         total_posts += 1
         for k, v in post:
             print(f"{k}: {v}")
