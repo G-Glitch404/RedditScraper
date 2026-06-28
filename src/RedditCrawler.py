@@ -77,7 +77,7 @@ class RedditCrawler:
         post_obj["upvote_ratio"] = extract(payload, "upvote_ratio")
         post_obj["is_original_content"] = extract(payload, "is_original_content")
         post_obj["post_flair"] = extract(payload, "link_flair_text")
-        post_obj["type"] = extract(payload, "post_hint", default='').split(":")[-1] or None
+        post_obj["type"] = extract(payload, "post_hint", default='').split(":")[-1].replace("self", "text") or None
         post_obj["published_at"] = dt.datetime.fromtimestamp(extract(payload, "created_utc"), tz=dt.timezone.utc)
         post_obj["is_crosspostable"] = extract(payload, "is_crosspostable")
         post_obj["total_crossposts"] = extract(payload, "num_crossposts")
@@ -119,6 +119,22 @@ class RedditCrawler:
         }
 
         post_obj["found_media"] = {link for link in post_obj["found_media"] if link}
+
+        if post_obj.get("is_gallery"):
+            gallery_items: list[dict[str, dict[str, Any]]] = []
+            for item_id, v in post_obj["media_metadata"].items():
+                if v["status"] != "valid": continue
+                gallery_item: dict[str, dict[str, Any]] = {
+                    item_id: {
+                        "height": item["y"],
+                        "width": item["x"],
+                        "link": item["u"]
+                    }
+                    for item in v["p"]
+                }
+
+                gallery_items.append(gallery_item)
+            post_obj["found_media"].add(gallery_items)
 
         return post_obj
 

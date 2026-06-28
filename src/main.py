@@ -207,4 +207,3 @@ async def main() -> None:
                     await charge_user(actor, event_name='pushed-result')
 
         logger.info(f"actor pushed & charged user for {valid_posts} valid posts, now actor is finished and exiting...")
-
