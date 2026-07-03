@@ -273,7 +273,7 @@ class RedditCrawler:
 
             post_payload: dict[str, Any] = extract(reddit_payload, 0, "data", "children", 0, "data")
             if settings["INCLUDE_COMMENTS"]:
-                comments_payload: list[dict[str, Any]] = extract(reddit_payload, 1, "data", "children")
+                comments_payload: list[dict[str, Any]] = extract(reddit_payload, 1, "data", "children", default=[])
                 post: Post = await self.parse(post_payload, comments_payload)
             else:
                 post: Post = await self.parse(post_payload)
@@ -307,7 +307,7 @@ class RedditCrawler:
                 reddit_payload = await _request_fetch_json(reddit_url, next_pagination)
                 if reddit_payload is None: return
 
-                tasks: list[Coroutine[None, None, Post]] = [self.parse(raw_post["data"]) for raw_post in extract(reddit_payload, "data", "children")]
+                tasks: list[Coroutine[None, None, Post]] = [self.parse(raw_post["data"]) for raw_post in extract(reddit_payload, "data", "children", default=[])]
                 extracted_posts: tuple[Post] = await asyncio.gather(*tasks)
 
                 self.logger.debug(f"scraped {len(extracted_posts)} posts yielding results now...")
