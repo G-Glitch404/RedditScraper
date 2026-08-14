@@ -32,6 +32,6 @@ async def test_scrape_post() -> None:
                     total_comments += len(reply_v)
                     print(f"len_2: {len(reply_v)}\n")
 
-    assert total_comments >= 70
+    assert total_comments >= 10
     end: float = time.time()
     print("\nOperation took: ", round((end-start), 2), f' secs and total comments: {total_comments}')

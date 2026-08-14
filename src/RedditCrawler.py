@@ -122,7 +122,7 @@ class RedditCrawler:
 
         if post_obj.get("is_gallery"):
             gallery_items: list[dict[str, dict[str, Any]]] = []
-            for item_id, v in post_obj["media_metadata"].items():
+            for item_id, v in (post_obj["media_metadata"] or {}).items():
                 if v["status"] != "valid": continue
                 gallery_item: dict[str, dict[str, Any]] = {
                     item_id: {
@@ -134,7 +134,8 @@ class RedditCrawler:
                 }
 
                 gallery_items.append(gallery_item)
-            post_obj["found_media"].add(gallery_items)
+            for item in gallery_items:
+                post_obj["found_media"].add(item)
 
         return post_obj
 
@@ -174,7 +175,7 @@ class RedditCrawler:
         comment["is_author_blocked"] = extract(raw_comment, "author_is_blocked")
         comment["published_at"] = dt.datetime.fromtimestamp(timestamp, tz=dt.timezone.utc) if (timestamp := extract(raw_comment, "created_utc")) else None
 
-        if not comment["is_removed"]:
+        if not comment["is_removed"] and comment["body"]:
             sentiment_score: float = self.sentiment_analyzer.polarity_scores(comment["body"])["compound"]
 
             comment["sentiment_score"] = sentiment_score
