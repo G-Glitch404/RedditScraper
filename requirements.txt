@@ -1,6 +1,6 @@
-curl_cffi~=0.15.0
+curl_cffi~=0.16.2
 parsel~=1.11.0
-apify~=3.4.1
+apify~=4.0.1
 python-dotenv~=1.2.2
 requests~=2.34.2
 browserforge~=1.2.4
