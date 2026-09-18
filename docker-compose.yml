@@ -3,6 +3,12 @@ services:
     image: localhost/reddit-crawler:latest
     container_name: reddit-crawler-app
     restart: unless-stopped
+    stop_grace_period: 30s
+    mem_limit: 2g
+    mem_reservation: 1g
+    cpus: 1
+    pids_limit: 256
+    mem_swappiness: 0
     env_file: ./.env
     environment:
       - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}?options=-c%20timezone%3DUTC
